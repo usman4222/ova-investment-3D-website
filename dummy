@@ -1,0 +1,821 @@
+// =======================================================
+// 🌌 3D Image Carousel with Scroll-Triggered Animation + Section Visibility Control
+// =======================================================
+
+import * as THREE from "three";
+import { OrbitControls } from "jsm/controls/OrbitControls.js";
+
+// -------------------------------------------------------
+// === Logo Intro Setup ===
+// -------------------------------------------------------
+const logoScreen = document.getElementById("logoScreen");
+const canvas = document.querySelector("#draw");
+
+// Hide 3D canvas initially
+canvas.style.opacity = 0;
+
+// Wait for 1s, then fade logo out and start 3D scene
+setTimeout(() => {
+  start3DScene();
+
+  logoScreen.style.transition = "opacity 2s ease";
+  logoScreen.style.opacity = "0";
+
+  canvas.style.transition = "opacity 2s ease";
+  canvas.style.opacity = "1";
+
+  setTimeout(() => {
+    logoScreen.style.display = "none";
+  }, 2500);
+}, 1000);
+
+// -------------------------------------------------------
+// === Start Three.js Scene ===
+// -------------------------------------------------------
+function start3DScene() {
+  const scene = new THREE.Scene();
+
+  const camera = new THREE.PerspectiveCamera(
+    75,
+    window.innerWidth / window.innerHeight,
+    0.01,
+    200
+  );
+  camera.position.set(0, 0.01, 35);
+
+  const renderer = new THREE.WebGLRenderer({
+    canvas,
+    alpha: true,
+    antialias: true,
+  });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setPixelRatio(window.devicePixelRatio);
+
+  // === Lights ===
+  scene.add(new THREE.AmbientLight(0xffffff, 1));
+  const pointLight = new THREE.PointLight(0xffffff, 1);
+  pointLight.position.set(10, 10, 10);
+  scene.add(pointLight);
+
+  // === Carousel Setup ===
+  const group = new THREE.Group();
+  scene.add(group);
+
+  const textureLoader = new THREE.TextureLoader();
+  const images = [
+    "./assets/images/slider-image-1.avif",
+    "./assets/images/slider-image-2.avif",
+    "./assets/images/slider-image-3.avif",
+    "./assets/images/slider-image-4.avif",
+    "./assets/images/slider-image-5.avif",
+    "./assets/images/slider-image-6.avif",
+    "./assets/images/slider-image-7.avif",
+    "./assets/images/slider-image-8.avif",
+  ];
+
+  const radius = 12;
+  const planeWidth = 5;
+  const planeHeight = 4;
+  group.position.y = -1;
+
+  images.forEach((img, i) => {
+    const texture = textureLoader.load(img);
+    const material = new THREE.MeshBasicMaterial({
+      map: texture,
+      side: THREE.DoubleSide,
+    });
+    const geometry = new THREE.PlaneGeometry(planeWidth, planeHeight);
+    const plane = new THREE.Mesh(geometry, material);
+
+    const angle = (i / images.length) * Math.PI * 2;
+    plane.position.x = Math.cos(angle) * radius;
+    plane.position.z = Math.sin(angle) * radius;
+    plane.lookAt(0, 0, 0);
+    group.add(plane);
+  });
+
+  // -------------------------------------------------------
+  // === Animation Setup ===
+  // -------------------------------------------------------
+  let baseRotationSpeed = 0.09;
+  let targetTilt = 0;
+  let rotationSpeed = 0;
+  let currentTilt = 0;
+  let floatOffset = 0;
+
+  let startTime = Date.now();
+  const moveDuration = 9000;
+  const startZ = 10;
+  const endZ = 1.5;
+  const startScale = 0.3;
+  const endScale = 2;
+
+  // -------------------------------------------------------
+  // 🌪️ Scroll Logic
+  // -------------------------------------------------------
+  let isZoomedOut = false;
+  let isTransitioning = false;
+
+  const zoomOutZ = 50;
+  const zoomInZ = 35;
+  const normalSpinSpeed = 0.09;
+  const fastSpinSpeed = 1.5;
+  const zoomDuration = 2000;
+
+  const bgImage = document.getElementById("bgImage");
+
+  window.addEventListener("wheel", (event) => {
+        const direction = event.deltaY > 0 ? 1 : -1;
+        baseRotationSpeed = THREE.MathUtils.lerp(
+          baseRotationSpeed,
+          fastSpinSpeed * direction,
+          0.1
+        );
+    
+        if (!scrollStartTime) scrollStartTime = Date.now();
+        clearTimeout(scrollTimeout);
+    
+        scrollTimeout = setTimeout(() => {
+          baseRotationSpeed = normalSpinSpeed;
+          scrollStartTime = null;
+        }, 400);
+    if (isTransitioning) return;
+
+    // ✅ Scroll Down → Animate to zoomed out fast state
+    if (event.deltaY > 0 && !isZoomedOut) {
+      isTransitioning = true;
+      spinFast();
+      fadeBackground("./assets/images/hero-2.avif");
+      zoomCamera(zoomOutZ, () => {
+        isZoomedOut = true;
+        isTransitioning = false;
+        window.dispatchEvent(new Event("heroAnimationComplete"));
+      });
+    }
+
+    // ✅ Scroll Up → Return to normal state
+    else if (event.deltaY < 0 && isZoomedOut) {
+      isTransitioning = true;
+      fadeBackground("./assets/images/hero-1.avif");
+      zoomCamera(zoomInZ, () => {
+        isZoomedOut = false;
+        baseRotationSpeed = normalSpinSpeed;
+        isTransitioning = false;
+      });
+    }
+  });
+
+  // -------------------------------------------------------
+  // 💨 Fast Spin
+  // -------------------------------------------------------
+  function spinFast() {
+    baseRotationSpeed = fastSpinSpeed;
+    setTimeout(() => {
+      if (!isZoomedOut) baseRotationSpeed = normalSpinSpeed;
+    }, 2000);
+  }
+
+  // -------------------------------------------------------
+  // 🌈 Fade Background
+  // -------------------------------------------------------
+  function fadeBackground(newSrc) {
+    if (!bgImage) return;
+    bgImage.style.transition = "opacity 1.5s ease";
+    bgImage.style.opacity = "0";
+    setTimeout(() => {
+      bgImage.src = newSrc;
+      bgImage.style.opacity = "1";
+    }, 800);
+  }
+
+  // -------------------------------------------------------
+  // 🎥 Zoom Animation
+  // -------------------------------------------------------
+  function zoomCamera(targetZ, onComplete) {
+    const startZ = camera.position.z;
+    const startTime = Date.now();
+
+    function animateZoom() {
+      const elapsed = Date.now() - startTime;
+      const t = Math.min(elapsed / zoomDuration, 1);
+      const ease = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+      camera.position.z = THREE.MathUtils.lerp(startZ, targetZ, ease);
+      renderer.render(scene, camera);
+      if (t < 1) requestAnimationFrame(animateZoom);
+      else if (onComplete) onComplete();
+    }
+    animateZoom();
+  }
+
+  // -------------------------------------------------------
+  // 👀 Hide Circle When Reaching 2nd Section
+  // -------------------------------------------------------
+
+  // 👀 Handle circle fade + section cross-fade with black gradient
+  const secondSection = document.getElementById("secondSection");
+  const transitionOverlay = document.getElementById("transitionOverlay");
+
+  window.addEventListener("scroll", () => {
+    if (!secondSection || !transitionOverlay) return;
+    const rect = secondSection.getBoundingClientRect();
+
+    // ✅ When starting to reach 2nd section
+    if (rect.top < window.innerHeight * 0.8) {
+      // Fade out hero circle
+      canvas.style.transition = "opacity 1s ease";
+      canvas.style.opacity = "0";
+      canvas.style.pointerEvents = "none";
+      canvas.style.visibility = "hidden";
+
+      // Show black gradient for ~1s
+      transitionOverlay.style.opacity = "1";
+
+      // After 1s → hide gradient + reveal 2nd section
+      setTimeout(() => {
+        transitionOverlay.style.opacity = "0";
+        secondSection.style.transition = "opacity 1s ease";
+        secondSection.style.opacity = "1";
+      }, 1000);
+    } else {
+      // Scroll back up → fade 2nd section out, fade hero circle back in
+      secondSection.style.transition = "opacity 1s ease";
+      secondSection.style.opacity = "0";
+
+      transitionOverlay.style.opacity = "1";
+      setTimeout(() => {
+        transitionOverlay.style.opacity = "0";
+        canvas.style.transition = "opacity 1s ease";
+        canvas.style.opacity = "1";
+        canvas.style.pointerEvents = "auto";
+        canvas.style.visibility = "visible";
+      }, 1000);
+    }
+  });
+
+  // -------------------------------------------------------
+  // 🌀 Animation Loop
+  // -------------------------------------------------------
+  function animate() {
+    requestAnimationFrame(animate);
+
+    const elapsed = Date.now() - startTime;
+    const t = Math.min(elapsed / moveDuration, 1);
+    const ease = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+
+    camera.position.z = THREE.MathUtils.lerp(startZ, endZ, ease);
+    const scale = THREE.MathUtils.lerp(startScale, endScale, ease);
+    group.scale.set(scale, scale, scale);
+
+    group.rotation.y += baseRotationSpeed * 0.02;
+
+    currentTilt += (targetTilt - currentTilt) * 0.1;
+    const bowTilt = THREE.MathUtils.lerp(0.9, 0, ease);
+    group.rotation.x = currentTilt + bowTilt;
+
+    floatOffset += 0.015 + baseRotationSpeed * 0.5;
+    group.position.y = -1 + Math.sin(floatOffset) * 0.1;
+
+    renderer.render(scene, camera);
+
+    // 🪶 Fade overlay based on distance
+    const overlay = document.getElementById("textOverlay");
+    overlay.style.opacity = camera.position.z < 4 ? "1" : "0";
+  }
+
+  animate();
+
+  // Handle Resize
+  window.addEventListener("resize", () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  });
+}
+
+
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OVA Landing Clone</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css" />
+    <link href="https://fonts.cdnfonts.com/css/geist-mono" rel="stylesheet" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        margin: 0;
+        overflow: hidden;
+        font-family: "Poppins", "Geist Mono", monospace, sans-serif;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      .fade-section {
+        opacity: 0;
+        transition: opacity 0.7s cubic-bezier(0.8, 0, 0.2, 1);
+        will-change: opacity;
+        z-index: 10;
+      }
+      .fade-section.active {
+        opacity: 1;
+        z-index: 20;
+      }
+      .fade-section .section-content {
+        transition: opacity 0.75s cubic-bezier(0.8, 0, 0.2, 1) 0.15s;
+        opacity: 0;
+      }
+      .fade-section.active .section-content {
+        opacity: 1;
+      }
+      .sidebar-dot {
+        transition: color 0.6s cubic-bezier(0.8, 0, 0.2, 1),
+          border 0.6s cubic-bezier(0.8, 0, 0.2, 1),
+          font-weight 0.5s cubic-bezier(0.8, 0, 0.2, 1);
+      }
+      .sidebar-dot.active {
+        color: #6366f1 !important; /* Tailwind indigo-400 */
+        border-left-width: 4px !important;
+        border-color: #6366f1 !important;
+        font-weight: bold !important;
+        background: linear-gradient(90deg, #6366f1 0%, transparent 100%);
+      }
+    </style>
+  </head>
+  <body class="bg-black relative text-white min-h-screen">
+    <!-- Hero Section -->
+    <section id="heroSection" class="relative w-full h-screen">
+      <div class="absolute inset-0 -z-10">
+        <img
+          id="bgImage"
+          src="image.jpeg"
+          alt="Background"
+          class="w-full h-full object-cover opacity-70 transition-opacity duration-500"
+        />
+      </div>
+      <div
+        id="logoScreen"
+        class="absolute inset-0 flex items-center justify-center z-10"
+      >
+        <img src="image.jpeg" alt="Logo" id="logoImage" />
+      </div>
+      <canvas id="draw" class="absolute inset-0 w-full h-full block"></canvas>
+      <div
+        id="textOverlay"
+        class="absolute inset-0 flex flex-col items-center justify-center text-center text-white opacity-0 transition-opacity duration-1000 pointer-events-none z-20"
+      >
+        <div class="mb-20">
+          <h1 class="text-4xl md:text-6xl">Valuable, that is</h1>
+          <div class="flex items-center justify-center mb-20">
+            <h1 class="text-4xl md:text-6xl mr-3">Our</h1>
+            <span id="typewriter" class="text-4xl md:text-6xl"></span>
+          </div>
+        </div>
+        <p class="text-[17px] font-[400] max-w-xl mt-28">
+          OVA is an investment fund built around a central promise: to invest
+          disruptively in the most valuable, promising, and resilient assets.
+        </p>
+      </div>
+    </section>
+
+    <!-- CONTENT SECTIONS WITH FADE AND FORMATTED TEXT -->
+    <main id="snapContainer" class="relative">
+      <section
+        id="section1"
+        class="fade-section relative h-screen w-full flex items-center border-t border-white border-opacity-10 bg-emerald-400"
+        style="
+          background-image: url('./assets/images/slider-image-1.avif');
+          background-size: cover;
+          background-position: center;
+        "
+      >
+        <!-- Overlay -->
+        <div class="absolute inset-0 bg-black/40"></div>
+
+        <!-- Content -->
+        <div
+          class="section-content relative z-10 flex flex-col justify-center items-start px-8 bg-amber-300"
+        >
+          <div class="flex flex-col max-w-xl ">
+            <h1
+              class="text-white text-lg md:text-xl lg:text-2xl font-semibold leading-tight mb-4 drop-shadow-lg"
+            >
+              By focusing on companies that reinvent the entertainment
+              experience,<br />
+              <span class="text-gray-300 font-bold">OVA</span> identifies
+              approaches capable of capturing and retaining audiences while
+              generating sustainable returns.
+            </h1>
+
+            <div class="mt-8">
+              <h2
+                class="font-bold text-xl md:text-2xl mb-2 tracking-wide text-white"
+              >
+                ENTERTAINMENT
+              </h2>
+              <p
+                class="text-white text-opacity-90 max-w-lg md:max-w-2xl text-base md:text-lg"
+              >
+                OVA sees entertainment as a constantly evolving sector, where
+                every innovation redefines how we engage, inspire, and captivate
+                audiences.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section
+        id="section2"
+        class="fade-section absolute inset-0 h-screen w-full flex items-center border-t border-white border-opacity-10"
+        style="
+          background-image: url('./assets/images/slider-image-2.avif');
+          background-size: cover;
+          background-position: center;
+        "
+      >
+        <div class="absolute inset-0 bg-black/40"></div>
+        <div
+          class="section-content relative z-10 flex flex-col justify-center items-start pl-8 md:pl-20 lg:pl-40"
+        >
+          <div>
+            <h1
+              class="text-white text-4xl md:text-5xl lg:text-6xl font-semibold leading-tight mb-4 drop-shadow-lg"
+            >
+              Revolutionize the way technology impacts everyday life,<br />
+              <span class="text-gray-300 font-bold">OVA</span> drives
+              technological advancements for sustainable solutions.
+            </h1>
+            <div class="mt-8">
+              <h2 class="font-bold text-xl md:text-2xl mb-2 tracking-wide">
+                TECHNOLOGY
+              </h2>
+              <p
+                class="text-white text-opacity-90 max-w-lg md:max-w-2xl text-base md:text-lg"
+              >
+                Embracing the exceptional potential of technology to open new
+                opportunities and investment horizons.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section
+        id="section3"
+        class="fade-section absolute inset-0 h-screen w-full flex items-center border-t border-white border-opacity-10"
+        style="
+          background-image: url('./assets/images/slider-image-3.avif');
+          background-size: cover;
+          background-position: center;
+        "
+      >
+        <div class="absolute inset-0 bg-black/40"></div>
+        <div
+          class="section-content relative z-10 flex flex-col justify-center items-start pl-8 md:pl-20 lg:pl-40"
+        >
+          <div>
+            <h1
+              class="text-white text-4xl md:text-5xl lg:text-6xl font-semibold leading-tight mb-4 drop-shadow-lg"
+            >
+              Accelerate the progress of companies<br />
+              <span class="text-gray-300 font-bold">OVA</span> targets
+              high-growth sectors for exponential returns.
+            </h1>
+            <div class="mt-8">
+              <h2 class="font-bold text-xl md:text-2xl mb-2 tracking-wide">
+                ACCELERATION
+              </h2>
+              <p
+                class="text-white text-opacity-90 max-w-lg md:max-w-2xl text-base md:text-lg"
+              >
+                Fueling businesses with strategic guidance and innovative
+                capital for rapid scaling and sustainable success.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section
+        id="section4"
+        class="fade-section absolute inset-0 h-screen w-full flex items-center border-t border-white border-opacity-10"
+        style="
+          background-image: url('./assets/images/slider-image-4.avif');
+          background-size: cover;
+          background-position: center;
+        "
+      >
+        <div class="absolute inset-0 bg-black/40"></div>
+        <div
+          class="section-content relative z-10 flex flex-col justify-center items-start pl-8 md:pl-20 lg:pl-40"
+        >
+          <div>
+            <h1
+              class="text-white text-4xl md:text-5xl lg:text-6xl font-semibold leading-tight mb-4 drop-shadow-lg"
+            >
+              Pioneering partnerships and networks<br />
+              <span class="text-gray-300 font-bold">OVA</span> fosters
+              collaboration for future-ready enterprises.
+            </h1>
+            <div class="mt-8">
+              <h2 class="font-bold text-xl md:text-2xl mb-2 tracking-wide">
+                PARTNERSHIPS
+              </h2>
+              <p
+                class="text-white text-opacity-90 max-w-lg md:max-w-2xl text-base md:text-lg"
+              >
+                Joining forces to create new models for innovation, growth, and
+                impact at scale.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section
+        id="section5"
+        class="fade-section absolute inset-0 h-screen w-full flex items-center border-t border-white border-opacity-10"
+        style="
+          background-image: url('./assets/images/slider-image-5.avif');
+          background-size: cover;
+          background-position: center;
+        "
+      >
+        <div class="absolute inset-0 bg-black/40"></div>
+        <div
+          class="section-content relative z-10 flex flex-col justify-center items-start pl-8 md:pl-20 lg:pl-40"
+        >
+          <div>
+            <h1
+              class="text-white text-4xl md:text-5xl lg:text-6xl font-semibold leading-tight mb-4 drop-shadow-lg"
+            >
+              Sustainability at the core of every initiative<br />
+              <span class="text-gray-300 font-bold">OVA</span> builds for
+              lasting impact and stewardship.
+            </h1>
+            <div class="mt-8">
+              <h2 class="font-bold text-xl md:text-2xl mb-2 tracking-wide">
+                SUSTAINABILITY
+              </h2>
+              <p
+                class="text-white text-opacity-90 max-w-lg md:max-w-2xl text-base md:text-lg"
+              >
+                Harnessing resources wide and deep to ensure environmental,
+                social, and business resilience.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section
+        id="section6"
+        class="fade-section absolute inset-0 h-screen w-full flex items-center border-t border-white border-opacity-10"
+        style="
+          background-image: url('./assets/images/slider-image-6.avif');
+          background-size: cover;
+          background-position: center;
+        "
+      >
+        <div class="absolute inset-0 bg-black/40"></div>
+        <div
+          class="section-content relative z-10 flex flex-col justify-center items-start pl-8 md:pl-20 lg:pl-40"
+        >
+          <div>
+            <h1
+              class="text-white text-4xl md:text-5xl lg:text-6xl font-semibold leading-tight mb-4 drop-shadow-lg"
+            >
+              Excellence through continuous improvement<br />
+              <span class="text-gray-300 font-bold">OVA</span> leverages
+              learning for future excellence.
+            </h1>
+            <div class="mt-8">
+              <h2 class="font-bold text-xl md:text-2xl mb-2 tracking-wide">
+                EXCELLENCE
+              </h2>
+              <p
+                class="text-white text-opacity-90 max-w-lg md:max-w-2xl text-base md:text-lg"
+              >
+                Committing to knowledge, growth, and adaptability for enduring
+                success.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section
+        id="section7"
+        class="fade-section absolute inset-0 h-screen w-full flex items-center border-t border-white border-opacity-10"
+        style="
+          background-image: url('./assets/images/slider-image-7.avif');
+          background-size: cover;
+          background-position: center;
+        "
+      >
+        <div class="absolute inset-0 bg-black/40"></div>
+        <div
+          class="section-content relative z-10 flex flex-col justify-center items-start pl-8 md:pl-20 lg:pl-40"
+        >
+          <div>
+            <h1
+              class="text-white text-4xl md:text-5xl lg:text-6xl font-semibold leading-tight mb-4 drop-shadow-lg"
+            >
+              Human-centric investment strategies<br />
+              <span class="text-gray-300 font-bold">OVA</span> empowers people,
+              ideas, and communities.
+            </h1>
+            <div class="mt-8">
+              <h2 class="font-bold text-xl md:text-2xl mb-2 tracking-wide">
+                IMPACT
+              </h2>
+              <p
+                class="text-white text-opacity-90 max-w-lg md:max-w-2xl text-base md:text-lg"
+              >
+                Serving not just results, but meaning and inspiration to
+                stakeholders and society.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section
+        id="section8"
+        class="fade-section absolute inset-0 h-screen w-full flex items-center border-t border-white border-opacity-10"
+        style="
+          background-image: url('./assets/images/slider-image-8.avif');
+          background-size: cover;
+          background-position: center;
+        "
+      >
+        <div class="absolute inset-0 bg-black/40"></div>
+        <div
+          class="section-content relative z-10 flex flex-col justify-center items-start pl-8 md:pl-20 lg:pl-40"
+        >
+          <div>
+            <h1
+              class="text-white text-4xl md:text-5xl lg:text-6xl font-semibold leading-tight mb-4 drop-shadow-lg"
+            >
+              Vision for the next generation<br />
+              <span class="text-gray-300 font-bold">OVA</span> defines the
+              future, starting today.
+            </h1>
+            <div class="mt-8">
+              <h2 class="font-bold text-xl md:text-2xl mb-2 tracking-wide">
+                VISION
+              </h2>
+              <p
+                class="text-white text-opacity-90 max-w-lg md:max-w-2xl text-base md:text-lg"
+              >
+                Transcending trends to set new standards, foster new leaders,
+                and unlock new hopes.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Sidebar Navigation -->
+    <aside class="fixed right-8 top-1/4 z-30 flex flex-col space-y-2">
+      <a href="#section1" class="sidebar-dot" id="nav-dot-1">01</a>
+      <a href="#section2" class="sidebar-dot" id="nav-dot-2">02</a>
+      <a href="#section3" class="sidebar-dot" id="nav-dot-3">03</a>
+      <a href="#section4" class="sidebar-dot" id="nav-dot-4">04</a>
+      <a href="#section5" class="sidebar-dot" id="nav-dot-5">05</a>
+      <a href="#section6" class="sidebar-dot" id="nav-dot-6">06</a>
+      <a href="#section7" class="sidebar-dot" id="nav-dot-7">07</a>
+      <a href="#section8" class="sidebar-dot" id="nav-dot-8">08</a>
+    </aside>
+
+    <div
+      id="transitionOverlay"
+      class="fixed inset-0 bg-gradient-to-b from-black via-black to-black opacity-0 pointer-events-none z-[9999] transition-opacity duration-[1000ms]"
+    ></div>
+
+    <script>
+      // Unlock scrolling after hero animation
+      window.addEventListener("heroAnimationComplete", () => {
+        document.body.style.overflowY = "auto";
+      });
+
+      // Sidebar dot styling
+      document.querySelectorAll(".sidebar-dot").forEach((dot) => {
+        dot.classList.add(
+          "text-white",
+          "text-sm",
+          "transition",
+          "duration-200",
+          "hover:font-bold",
+          "hover:text-indigo-400",
+          "pl-3",
+          "border-l",
+          "border-white",
+          "border-opacity-50",
+          "py-1"
+        );
+      });
+
+      function setSidebarActive(idx) {
+        document.querySelectorAll(".sidebar-dot").forEach((dot, i) => {
+          if (i === idx) {
+            dot.classList.add("active");
+          } else {
+            dot.classList.remove("active");
+          }
+        });
+      }
+
+      // Fade sections logic
+      let curIdx = 0;
+      function setActiveSection(idx) {
+        document.querySelectorAll(".fade-section").forEach((sec, i) => {
+          sec.classList.toggle("active", i === idx);
+          sec.style.zIndex = i === idx ? 20 : 10;
+        });
+        setSidebarActive(idx);
+      }
+
+      function goToSection(idx) {
+        curIdx = idx;
+        setActiveSection(idx);
+      }
+
+      // Section-by-section scroll handler + fade
+      (function () {
+        const sections = Array.from(document.querySelectorAll(".fade-section"));
+        setActiveSection(0);
+
+        let scrolling = false;
+        function scrollToSection(idx) {
+          if (scrolling || idx < 0 || idx >= sections.length) return;
+          scrolling = true;
+          curIdx = idx;
+          setActiveSection(idx);
+          setTimeout(() => {
+            scrolling = false;
+          }, 750);
+        }
+
+        // Mouse wheel
+        window.addEventListener(
+          "wheel",
+          function (e) {
+            if (document.body.style.overflowY === "hidden") return;
+            if (!e.ctrlKey && Math.abs(e.deltaY) > 10 && !scrolling) {
+              if (e.deltaY > 0 && curIdx < sections.length - 1) {
+                scrollToSection(curIdx + 1);
+              } else if (e.deltaY < 0 && curIdx > 0) {
+                scrollToSection(curIdx - 1);
+              }
+              e.preventDefault();
+            }
+          },
+          { passive: false }
+        );
+
+        // Keyboard (up/down)
+        window.addEventListener("keydown", function (e) {
+          if (document.body.style.overflowY === "hidden") return;
+          if (!scrolling && (e.key === "ArrowDown" || e.key === "PageDown")) {
+            if (curIdx < sections.length - 1) scrollToSection(curIdx + 1);
+            e.preventDefault();
+          }
+          if (!scrolling && (e.key === "ArrowUp" || e.key === "PageUp")) {
+            if (curIdx > 0) scrollToSection(curIdx - 1);
+            e.preventDefault();
+          }
+        });
+
+        // Touch swipe (basic, for phones)
+        let startY = null;
+        window.addEventListener("touchstart", (e) => {
+          if (e.touches.length === 1) startY = e.touches[0].clientY;
+        });
+        window.addEventListener("touchend", (e) => {
+          if (startY !== null && e.changedTouches.length === 1) {
+            const delta = e.changedTouches[0].clientY - startY;
+            if (Math.abs(delta) > 60 && !scrolling) {
+              if (delta < 0 && curIdx < sections.length - 1) {
+                scrollToSection(curIdx + 1);
+              } else if (delta > 0 && curIdx > 0) {
+                scrollToSection(curIdx - 1);
+              }
+            }
+            startY = null;
+          }
+        });
+
+        // Sidebar dot click
+        document.querySelectorAll(".sidebar-dot").forEach((dot, idx) => {
+          dot.addEventListener("click", function (e) {
+            e.preventDefault();
+            scrollToSection(idx);
+          });
+        });
+      })();
+    </script>
+  </body>
+</html>

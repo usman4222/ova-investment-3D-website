@@ -1,0 +1,67 @@
+
+.font-geist {
+  font-family: "Geist Mono", Menlo, Consolas, Monaco, "Liberation Mono",
+    "Lucida Console", monospace;
+}
+
+.font-poppins {
+  font-family: "Poppins", sans-serif;
+}
+#bgImage {
+  transition: opacity 1s ease-in-out;
+}
+
+#logoScreen {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10; /* keep it above the 3D scene */
+  opacity: 1;
+  transition: opacity 2s ease;
+}
+
+#logoImage {
+  width: 400px; /* adjust size */
+  height: auto;
+}
+
+#draw {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 3s ease;
+  z-index: 1; /* behind the logo */
+}
+
+#textOverlay {
+  z-index: 5;
+}
+
+#typewriter {
+  border-right: 3px solid rgba(255, 255, 255, 0.75);
+  white-space: nowrap;
+  overflow: hidden;
+  display: inline-block;
+  padding-right: 4px;
+  animation: blink 0.8s step-end infinite;
+}
+
+/* === Paragraph style === */
+.custom-paragraph {
+  font-weight: 400;
+  color: rgb(255, 255, 255);
+  font-size: 17px;
+  line-height: 18px;
+  text-align: center;
+  margin: 0;
+}
+
+@keyframes blink {
+  50% {
+    border-color: transparent;
+  }
+}
