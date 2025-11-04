@@ -4,11 +4,20 @@
     "Lucida Console", monospace;
 }
 
+
 .font-poppins {
   font-family: "Poppins", sans-serif;
 }
 #bgImage {
   transition: opacity 1s ease-in-out;
+}
+#snapContainer {
+  scroll-snap-type: y mandatory;
+  overflow-y: scroll;
+  height: 100vh;
+}
+#snapContainer section {
+  scroll-snap-align: start;
 }
 
 #logoScreen {
@@ -63,5 +72,36 @@
 @keyframes blink {
   50% {
     border-color: transparent;
+  }
+}
+
+
+/* Base animation setup */
+.line {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(40px);
+}
+
+/* Animate in sequence */
+.animate-in .line {
+  animation: lineUp 0.8s ease-out forwards;
+}
+
+.animate-in .line:nth-child(1) { animation-delay: 0.1s; }
+.animate-in .line:nth-child(2) { animation-delay: 0.3s; }
+.animate-in .line:nth-child(3) { animation-delay: 0.5s; }
+.animate-in .line:nth-child(4) { animation-delay: 0.7s; }
+.animate-in h2.line { animation-delay: 1s; }
+.animate-in p.line { animation-delay: 1.2s; }
+
+@keyframes lineUp {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
