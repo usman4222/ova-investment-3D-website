@@ -1,0 +1,56 @@
+<!-- About (circle reveal) -->
+<section
+  class="relative h-screen w-full flex items-center justify-center overflow-hidden"
+  id="circleReveal"
+  style="
+    background: url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1950&q=80')
+      center center / cover no-repeat;
+  "
+>
+  <div class="absolute inset-0 bg-black/30"></div>
+
+  <div
+    id="circleRevealContainer"
+    class="absolute inset-0 h-full w-full flex items-center justify-center z-30 bg-inherit"
+  >
+    <div class="w-full h-full flex items-center justify-center">
+      <div
+        class="z-10 w-full flex flex-col items-center justify-center text-center p-4"
+      >
+        <h2
+          class="text-white text-2xl md:text-xl font-normal max-w-xl mx-auto leading-normal"
+        >
+          OVA is an investment fund dedicated to identifying and developing
+          exceptional opportunities in strategic sectors.
+          <span class="block mt-4"></span>
+          Specialized in real estate, we have built a diversified portfolio
+          worth over $200 million, including more than 500 multi-residential
+          units and a wide range of industrial properties.
+          <span class="block mt-4"></span>
+          Through proven value-creation strategies, we achieve steady growth
+          while optimizing the use of minimal initial capital.
+        </h2>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  // Circle reveal effect on scroll
+  const circleReveal = document.querySelector("#circleRevealContainer");
+
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          circleReveal.classList.add("revealed");
+        } else {
+          circleReveal.classList.remove("revealed");
+        }
+      });
+    },
+    { threshold: 0.3 }
+  );
+
+  observer.observe(document.querySelector("#circleReveal"));
+</script>

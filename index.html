@@ -3,28 +3,46 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>OVA Landing Clone</title>
+    <title>OVA Landing Clone — Updated</title>
+
+    <!-- Tailwind (CDN quick) -->
     <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Fonts -->
     <link
       href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap"
       rel="stylesheet"
     />
+
+    <!-- GSAP + ScrollTrigger -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+
     <style>
+      :root {
+        --overlay-z: 9999;
+      }
       body {
         margin: 0;
         font-family: "Poppins", sans-serif;
         background-color: black;
         color: white;
+        overflow-y: auto;
       }
       html {
         scroll-behavior: smooth;
       }
+
+      /* small helpers */
+      .hidden-by-default {
+        display: none;
+      }
+
       #transitionOverlay {
         transition: opacity 0.8s ease;
         pointer-events: none;
       }
+
       .sidebar-dot {
         transition: color 0.6s cubic-bezier(0.8, 0, 0.2, 1),
           border 0.6s cubic-bezier(0.8, 0, 0.2, 1),
@@ -38,10 +56,101 @@
         font-weight: bold !important;
         background: linear-gradient(90deg, #6366f1 0%, transparent 100%);
       }
+
+      /* Menu overlay */
+      #menuOverlay {
+        background: rgba(4, 4, 6, 0.98);
+        backdrop-filter: blur(6px);
+      }
+
+      /* Ensure canvas covers and is interactive when needed */
+      canvas#draw {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+
+      /* responsive thumbnail */
+      .menu-thumb {
+        height: 160px;
+        object-fit: cover;
+      }
     </style>
   </head>
-  <body class="relative min-h-screen">
+
+  <body class="relative min-h-screen antialiased">
+    <!-- NAVBAR CONTAINER (we'll inject or keep inline small nav) -->
     <div id="navbarContainer" class="fixed w-full z-[9999]"></div>
+
+    <!-- HERO (with canvas and logo) -->
+    <section id="heroSection" class="relative w-full h-screen">
+      <div class="absolute inset-0 -z-10">
+        <img
+          id="bgImage"
+          src="./assets/images/hero-1.avif"
+          alt="Background"
+          class="w-full h-full object-cover opacity-70 transition-opacity duration-500"
+        />
+      </div>
+
+      <div
+        id="logoScreen"
+        class="absolute inset-0 flex items-center justify-center z-30"
+        style="background: rgba(0, 0, 0, 0.5)"
+      >
+        <img
+          src="./assets/images/logo.avif"
+          alt="Logo"
+          id="logoImage"
+          class="w-48 h-auto"
+        />
+      </div>
+
+      <canvas
+        id="draw"
+        class="absolute inset-0 w-full h-full block z-20"
+      ></canvas>
+
+      <div
+        id="textOverlay"
+        class="absolute inset-0 flex flex-col items-center justify-center text-center text-white opacity-0 transition-opacity duration-1000 pointer-events-none z-40"
+      >
+        <div class="mb-20">
+          <h1 class="text-4xl md:text-6xl">Valuable, that is</h1>
+          <div class="flex items-center justify-center mb-8">
+            <h1 class="text-4xl md:text-6xl mr-3">Our</h1>
+            <span
+              id="typewriter"
+              class="text-4xl md:text-6xl font-semibold"
+            ></span>
+          </div>
+        </div>
+        <p class="text-[17px] font-[400] max-w-xl mt-8">
+          OVA is an investment fund built around a central promise: to invest
+          disruptively in the most valuable, promising, and resilient assets.
+        </p>
+      </div>
+    </section>
+
+    <!-- second section (revealed after hero) -->
+    <section
+      id="secondSection"
+      class="w-full min-h-screen flex items-center justify-center opacity-0 transition-opacity duration-[1000ms]"
+      style="
+        background-image: url('./assets/images/hero-2.avif');
+        background-size: cover;
+        background-position: center;
+      "
+    >
+      <h2 class="text-3xl font-bold text-white">This is the second section</h2>
+    </section>
+
+    <!-- transition overlay (black full-screen fade) -->
+    <div
+      id="transitionOverlay"
+      class="fixed inset-0 bg-black opacity-0 pointer-events-none z-[9999] transition-opacity duration-[1000ms]"
+    ></div>
+
     <!-- Sidebar Navigation -->
     <aside
       id="mainSidebar"
@@ -57,7 +166,9 @@
       <a href="#section8" class="sidebar-dot">08</a>
     </aside>
 
+    <!-- MAIN CONTENT (multiple sections) -->
     <main id="snapContainer">
+      <!-- Section 1 -->
       <section
         id="section1"
         class="relative h-screen flex items-center justify-center overflow-hidden"
@@ -76,14 +187,6 @@
           >
             <h1
               class="text-white text-5xl font-normal leading-tight drop-shadow-lg text-left"
-              style="
-                font-family: 'Neue Montreal', -apple-system, BlinkMacSystemFont,
-                  'avenir next', avenir, 'segoe ui', 'helvetica neue', helvetica,
-                  Cantarell, Ubuntu, roboto, noto, arial, sans-serif;
-                font-weight: 400;
-                font-size: 35px;
-                line-height: 36px;
-              "
             >
               <span class="line block"
                 >By focusing on companies transforming</span
@@ -93,7 +196,7 @@
                 <span class="text-gray-300 font-bold">OVA</span>
                 identifies</span
               >
-              <span class="line block">solutions capable of addressing </span>
+              <span class="line block">solutions capable of addressing</span>
               <span class="line block"
                 >contemporary challenges and generating</span
               >
@@ -101,6 +204,7 @@
                 >significant and sustainable returns.</span
               >
             </h1>
+
             <div class="mt-8 flex flex-col">
               <h2
                 class="font-bold text-2xl md:text-3xl text-left mb-2 tracking-wide text-white line block"
@@ -119,13 +223,12 @@
         </div>
       </section>
 
-      <!-- Manifesto Section: Scaling Background & Cycling Text -->
+      <!-- Manifesto -->
       <section
         id="manifesto"
         class="relative flex items-center justify-center overflow-hidden"
         style="min-height: 100vh; height: 100vh"
       >
-        <!-- Scalable background image  -->
         <div
           id="manifestoBg"
           class="absolute inset-0 will-change-transform"
@@ -139,7 +242,6 @@
         ></div>
         <div class="absolute inset-0 bg-black/30"></div>
 
-        <!-- Content -->
         <div
           class="z-20 flex flex-col justify-center items-end w-full h-full pr-10 md:pr-24 lg:pr-40"
         >
@@ -149,49 +251,37 @@
             >
               <div class="flex flex-col items-end">
                 <span
-                  class="text-white text-xl font-normal tracking-wide"
-                  style="font-family: 'Neue Montreal', sans-serif"
                   id="manifestoSubhead"
+                  class="text-white text-xl font-normal tracking-wide"
+                  >OVA</span
                 >
-                  OVA
-                </span>
                 <span
-                  class="text-white text-[3.2rem] md:text-[4rem] leading-none font-semibold"
                   id="manifestoHeadline"
-                  style="font-family: 'Neue Montreal', sans-serif"
+                  class="text-white text-[3.2rem] md:text-[4rem] leading-none font-semibold"
+                  >Invests</span
                 >
-                  Invests
-                </span>
               </div>
               <p
-                class="text-white text-base text-left md:text-lg font-normal"
                 id="manifestoPara"
-                style="font-family: 'Neue Montreal', sans-serif"
+                class="text-white text-base text-left md:text-lg font-normal"
               >
-                In the most valuable, promising, and resilient assets.<br />
-                The concept of "value" at OVA is fundamentally multidimensional.
+                In the most valuable, promising, and resilient assets.<br />The
+                concept of "value" at OVA is fundamentally multidimensional.
               </p>
             </div>
             <div class="mt-48">
-              <span
-                class="font-bold text-white text-base md:text-lg"
-                style="font-family: 'Neue Montreal', sans-serif"
+              <span class="font-bold text-white text-base md:text-lg"
+                >Jean-Sébastien Bergeron</span
+              ><br />
+              <span class="text-white font-normal text-base"
+                >CEO & founder</span
               >
-                Jean-Sébastien Bergeron
-              </span>
-              <br />
-              <span
-                class="text-white font-normal text-base"
-                style="font-family: 'Neue Montreal', sans-serif"
-              >
-                CEO & founder
-              </span>
             </div>
           </div>
         </div>
       </section>
 
-      <!-- Since Section -->
+      <!-- Since -->
       <section
         class="relative h-screen w-full flex items-center justify-center overflow-hidden"
         style="
@@ -199,28 +289,17 @@
             no-repeat;
         "
       >
-        <!-- Optional subtle overlay for readability -->
         <div class="absolute inset-0 bg-black/20"></div>
-
         <div
           class="z-10 w-full flex flex-col items-center justify-center text-center"
         >
-          <h1
-            class="text-white text-5xl md:text-7xl font-normal"
-            style="
-              font-family: 'Neue Montreal', -apple-system, BlinkMacSystemFont,
-                'avenir next', avenir, 'segoe ui', 'helvetica neue', helvetica,
-                Cantarell, Ubuntu, roboto, noto, arial, sans-serif;
-              font-weight: 400;
-            "
-          >
-            Since<br />
-            its creation,
+          <h1 class="text-white text-5xl md:text-7xl font-normal">
+            Since<br />its creation,
           </h1>
         </div>
       </section>
 
-      <!-- ded Section -->
+      <!-- About (circle reveal) -->
       <section
         class="relative h-screen w-full flex items-center justify-center overflow-hidden"
         style="
@@ -228,10 +307,7 @@
             no-repeat;
         "
       >
-        <!-- Overlay for readability -->
         <div class="absolute inset-0 bg-black/20"></div>
-
-        <!-- Reveal Circle Mask -->
         <div
           id="circleRevealContainer"
           class="absolute inset-0 h-full w-full flex items-center justify-center z-30"
@@ -247,57 +323,22 @@
             >
               <h2
                 class="text-white text-3xl md:text-4xl lg:text-5xl font-normal max-w-xl mx-auto leading-normal"
-                style="
-                  font-family: 'Neue Montreal', -apple-system,
-                    BlinkMacSystemFont, 'avenir next', avenir, 'segoe ui',
-                    'helvetica neue', helvetica, Cantarell, Ubuntu, roboto, noto,
-                    arial, sans-serif;
-                  font-weight: 400;
-                "
               >
                 OVA is an investment fund dedicated to identifying and
                 developing exceptional opportunities in strategic sectors.
                 <span class="block mt-4"></span>
                 Specialized in real estate, we have built a diversified
-                portfolio worth over $200 million, including more than 500
-                multi-residential units and a wide range of industrial
-                properties.
-                <span class="block mt-4"></span>
-                Through proven value-creation strategies, we achieve steady
-                growth while optimizing the use of minimal initial capital.
+                portfolio worth over $200 million...
               </h2>
             </div>
           </div>
         </div>
       </section>
-      <!-- Contact Us Section -->
-      <section
-        id="contact"
-        class="relative h-screen min-h-[500px] w-full flex flex-col items-center justify-center overflow-hidden"
-        style="background: url('./assets/images/contact.avif') center center / cover no-repeat"
-      >
-        <div class="absolute inset-0 bg-black/60"></div>
-        <div
-          class="relative z-10 flex flex-col items-center justify-center h-full w-full text-center"
-        >
-          <h1
-            class="text-white text-5xl md:text-6xl font-normal mb-6 line block"
-            style="font-family: 'Neue Montreal', sans-serif"
-          >
-            Contact Us
-          </h1>
-          <p
-            class="text-white text-lg md:text-xl font-normal max-w-xl mx-auto mb-4"
-            style="font-family: 'Neue Montreal', sans-serif "
-          >
-            Share your vision with us. <br />
-            Together, let's explore how to transform your ideas into tangible
-            opportunities.
-          </p>
-        </div>
-      </section>
 
-      <!-- Footer Section -->
+      <!-- Contact Section (will be loaded dynamically) -->
+      <div id="contactContainer"></div>
+
+      <!-- Footer -->
       <footer
         class="w-full py-10 px-4 md:px-20 flex flex-col md:flex-row items-start md:items-center justify-between"
         style="background: linear-gradient(0deg, #715046 0%, #b28e77 100%)"
@@ -305,10 +346,8 @@
         <div>
           <div
             class="text-white font-medium text-base md:text-lg text-right md:text-left mb-1"
-            style="font-family: 'Neue Montreal', sans-serif"
           >
-            5323 Rue Brebeuf,<br />
-            Montréal, QC H2J 3L8
+            5323 Rue Brebeuf,<br />Montréal, QC H2J 3L8
           </div>
         </div>
         <div
@@ -329,218 +368,206 @@
       </footer>
     </main>
 
-    <div
-      id="transitionOverlay"
-      class="fixed inset-0 bg-black opacity-0 z-[9999]"
-    ></div>
-
+    <!-- Transition fade (used between sections) -->
     <div
       id="transitionFade"
       class="fixed inset-0 bg-black pointer-events-none opacity-0 z-[9999]"
       style="transition: opacity 0.6s cubic-bezier(0.76, 0, 0.24, 1)"
     ></div>
 
+    <!-- Fullscreen Menu Overlay (visual thumbnails) -->
+    <div
+      id="menuOverlay"
+      class="fixed inset-0 z-[100000] hidden flex-col items-center justify-start p-8 overflow-auto"
+    >
+      <button id="closeMenu" class="text-white text-2xl absolute top-6 right-8">
+        ✕
+      </button>
+      <h3 class="text-2xl font-semibold mb-6">Explore — sections</h3>
+      <div
+        class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-6xl"
+      >
+        <!-- We'll duplicate a thumbnail element for each important section -->
+        <div class="menu-item cursor-pointer" data-target="#section1">
+          <img
+            src="./assets/images/slider-image-1.avif"
+            class="w-full menu-thumb rounded-lg"
+            alt=""
+          />
+          <h4 class="mt-2 font-semibold">Technology</h4>
+        </div>
+        <div class="menu-item cursor-pointer" data-target="#manifesto">
+          <img
+            src="./assets/images/manifesto.avif"
+            class="w-full menu-thumb rounded-lg"
+            alt=""
+          />
+          <h4 class="mt-2 font-semibold">Manifesto</h4>
+        </div>
+        <div class="menu-item cursor-pointer" data-target="#secondSection">
+          <img
+            src="./assets/images/hero-2.avif"
+            class="w-full menu-thumb rounded-lg"
+            alt=""
+          />
+          <h4 class="mt-2 font-semibold">Second Section</h4>
+        </div>
+        <div
+          class="menu-item cursor-pointer"
+          data-target="#circleRevealContainer"
+        >
+          <img
+            src="./assets/images/about-2.avif"
+            class="w-full menu-thumb rounded-lg"
+            alt=""
+          />
+          <h4 class="mt-2 font-semibold">About</h4>
+        </div>
+        <div class="menu-item cursor-pointer" data-target="#contact">
+          <img
+            src="./assets/images/contact.avif"
+            class="w-full menu-thumb rounded-lg"
+            alt=""
+          />
+          <h4 class="mt-2 font-semibold">Contact</h4>
+        </div>
+        <div class="menu-item cursor-pointer" data-target="footer">
+          <img
+            src="./assets/images/slider-image-5.avif"
+            class="w-full menu-thumb rounded-lg"
+            alt=""
+          />
+          <h4 class="mt-2 font-semibold">Footer</h4>
+        </div>
+      </div>
+    </div>
+
+    <!-- NAVBAR HTML (inline small nav so no external fetch needed) -->
+    <nav
+      id="siteNav"
+      class="fixed top-0 left-0 w-full flex items-center justify-between px-6 py-4 bg-transparent text-white z-[99999]"
+    >
+      <div class="flex gap-4 items-center">
+        <button
+          id="navContact"
+          class="bg-[#8F8D89] text-gray-800 uppercase px-3 py-2 text-[13px] rounded"
+        >
+          Contact
+        </button>
+        <button
+          id="navAbout"
+          class="bg-[#8F8D89] text-gray-800 uppercase px-3 py-2 text-[13px] rounded"
+        >
+          About Us
+        </button>
+      </div>
+
+      <div class="text-sm">7:13 MTL</div>
+
+      <div
+        class="flex items-center space-x-5 text-lg bg-[#8F8D89] px-3 py-2 rounded-lg"
+      >
+        <button
+          id="openMenuBtn"
+          class="text-gray-800 uppercase px-3 py-1 text-[14px]"
+        >
+          Menu
+        </button>
+        <div class="w-8 h-px bg-gray-700"></div>
+        <div>
+          <img
+            src="./assets/images/logo.avif"
+            class="w-32 h-10 object-contain"
+            alt="logo"
+          />
+        </div>
+      </div>
+    </nav>
+
+    <!-- MAIN animations and behavior using GSAP/ScrollTrigger -->
     <script>
-      //load navbar
-
-      function loadComponent(path, targetId) {
-        fetch(path)
-          .then((res) => {
-            if (!res.ok) throw new Error(`Failed to load ${path}`);
-            return res.text();
-          })
-          .then((html) => {
-            document.getElementById(targetId).innerHTML = html;
-          })
-          .catch((err) => console.error(err));
-      }
-
-      // Load navbar at page load
-      document.addEventListener("DOMContentLoaded", function () {
-        loadComponent("./navbar.html", "navbarContainer");
-      });
-
-      // GSAP Animations
       gsap.registerPlugin(ScrollTrigger);
-      // Animate lines from below per section
-      function animateSection(section) {
-        const lines = section.querySelectorAll(".line");
-        gsap.fromTo(
-          lines,
-          { opacity: 0, y: 60 },
+
+      // Animate lines in sections
+      function animateSectionLines() {
+        document.querySelectorAll(".animatedText").forEach((animated) => {
+          const section = animated.closest("section");
+          const lines = animated.querySelectorAll(".line");
+          gsap.fromTo(
+            lines,
+            { opacity: 0, y: 60 },
+            {
+              opacity: 1,
+              y: 0,
+              duration: 0.8,
+              ease: "power3.out",
+              stagger: 0.18,
+              scrollTrigger: {
+                trigger: section,
+                start: "top center+=80",
+                toggleActions: "play none none reverse",
+              },
+            }
+          );
+        });
+      }
+
+      // Sidebar dots styling and active
+      function initSidebar() {
+        const sectionIds = [
+          "section1",
+          "section2",
+          "section3",
+          "section4",
+          "section5",
+          "section6",
+          "section7",
+          "section8",
+        ];
+        const dots = document.querySelectorAll(".sidebar-dot");
+        sectionIds.forEach((id, idx) => {
+          ScrollTrigger.create({
+            trigger: "#" + id,
+            start: "top center",
+            end: "bottom center",
+            onEnter: () => setActive(idx),
+            onEnterBack: () => setActive(idx),
+          });
+        });
+        function setActive(i) {
+          dots.forEach((d, di) => d.classList.toggle("active", di === i));
+        }
+      }
+
+      // manifesto pin + text cycling
+      function initManifesto() {
+        const manifestoContent = [
           {
-            opacity: 1,
-            y: 0,
-            duration: 0.8,
-            ease: "power3.out",
-            stagger: 0.18,
-            scrollTrigger: {
-              trigger: section,
-              start: "top center+=80",
-              toggleActions: "play none none reverse",
-            },
-          }
-        );
-      }
-      document.querySelectorAll(".animatedText").forEach((animated) => {
-        animateSection(animated.closest("section"));
-      });
-
-      // Sidebar dot styling
-      document.querySelectorAll(".sidebar-dot").forEach((dot) => {
-        dot.classList.add(
-          "text-white",
-          "text-sm",
-          "transition",
-          "duration-200",
-          "hover:font-bold",
-          "hover:text-indigo-400",
-          "pl-3",
-          "border-l",
-          "border-white",
-          "border-opacity-50",
-          "py-1"
-        );
-      });
-
-      // Sidebar highlight on scroll using ScrollTrigger
-      let sectionIds = [
-        "section1",
-        "section2",
-        "section3",
-        "section4",
-        "section5",
-        "section6",
-        "section7",
-        "section8",
-      ];
-      let dots = document.querySelectorAll(".sidebar-dot");
-
-      sectionIds.forEach((id, idx) => {
-        ScrollTrigger.create({
-          trigger: "#" + id,
-          start: "top center",
-          end: "bottom center",
-          onEnter: () => setSidebarActive(idx),
-          onEnterBack: () => setSidebarActive(idx),
-        });
-      });
-
-      function setSidebarActive(idx) {
-        dots.forEach((dot, i) => {
-          dot.classList.toggle("active", i === idx);
-        });
-      }
-
-      const sidebar = document.querySelector("aside");
-
-      ScrollTrigger.create({
-        trigger: "#manifesto",
-        start: "top top",
-        end: "+=300%",
-        onEnter: () => (sidebar.style.opacity = 0),
-        onEnterBack: () => (sidebar.style.opacity = 0),
-        onLeaveBack: () => (sidebar.style.opacity = 1),
-        onLeave: () => (sidebar.style.opacity = 0), // stays hidden after manifesto
-      });
-
-      // Fade overlay on click (for direct navigation, optional)
-      const overlay = document.getElementById("transitionOverlay");
-      dots.forEach((dot, idx) => {
-        dot.addEventListener("click", (e) => {
-          e.preventDefault();
-          overlay.style.opacity = 1;
-          setTimeout(() => {
-            document
-              .getElementById(sectionIds[idx])
-              .scrollIntoView({ behavior: "smooth" });
-            setTimeout(() => {
-              overlay.style.opacity = 0;
-            }, 400);
-          }, 350);
-        });
-      });
-
-      // Remove overlay on scroll/interaction
-      window.addEventListener("scroll", () => {
-        overlay.style.opacity = 0;
-      });
-
-      // Reference overlay and all snap sections
-      const fadeDiv = document.getElementById("transitionFade");
-      const allSections = Array.from(
-        document.querySelectorAll("#snapContainer > section")
-      );
-
-      // Animate fade between each section
-      allSections.forEach((section, idx) => {
-        if (idx === 0) return; // Skip first so the page opens clean
-
-        // Fade in just before leaving previous section
-        ScrollTrigger.create({
-          trigger: section,
-          start: "top 92%",
-          end: "top 82%",
-          onEnter: () => {
-            fadeDiv.style.opacity = 1;
+            headline: "Invests",
+            para: 'In the most valuable, promising, and resilient assets.<br>The concept of "value" at OVA is fundamentally multidimensional.',
+            subhead: "OVA",
           },
-        });
-
-        // Fade out as soon as new section is revealed
-        ScrollTrigger.create({
-          trigger: section,
-          start: "top 81%",
-          end: "top 64%",
-          onEnter: () => {
-            fadeDiv.style.opacity = 0;
+          {
+            headline: "Elevates",
+            para: "Redefining progress by nurturing innovation,<br>OVA creates opportunity beyond traditional boundaries.",
+            subhead: "OVA",
           },
-        });
-      });
+          {
+            headline: "Transforms",
+            para: "Committed to building a sustainable and<br>remarkable legacy for generations to come.",
+            subhead: "OVA",
+          },
+        ];
 
-      //  9: sectoin == Menifesto section animation (if needed)
-      // List of text states you want to cycle through as you scroll in the manifesto section
-      const manifestoContent = [
-        {
-          headline: "Invests",
-          para: 'In the most valuable, promising, and resilient assets.<br>The concept of "value" at OVA is fundamentally multidimensional.',
-          subhead: "OVA",
-        },
-        {
-          headline: "Elevates",
-          para: "Redefining progress by nurturing innovation,<br>OVA creates opportunity beyond traditional boundaries.",
-          subhead: "OVA",
-        },
-        {
-          headline: "Transforms",
-          para: "Committed to building a sustainable and<br>remarkable legacy for generations to come.",
-          subhead: "OVA",
-        },
-      ];
-
-      document.addEventListener("DOMContentLoaded", function () {
-        // Scaling background logic
-        gsap.registerPlugin(ScrollTrigger);
-
-        // Pin the section
+        // pin section
         ScrollTrigger.create({
           trigger: "#manifesto",
           start: "top top",
-          end: "+=300%", // Adjust if you want more/less scroll
+          end: "+=300%",
           pin: true,
           pinSpacing: true,
-          anticipatePin: 1,
-          onEnter: () => {
-            document.body.style.overflowX = "hidden";
-          },
-          onLeave: () => {
-            document.body.style.overflowX = "";
-          },
-          onLeaveBack: () => {
-            document.body.style.overflowX = "";
-          },
         });
 
-        // Background scale bound to scroll progress within section
         gsap.to("#manifestoBg", {
           scale: 1.22,
           filter: "brightness(0.85) blur(2px)",
@@ -552,11 +579,11 @@
           },
         });
 
-        // Text cycling logic: calculate which step of scroll, swap h1/p accordingly
         const headline = document.getElementById("manifestoHeadline");
         const para = document.getElementById("manifestoPara");
-        const subhead = document.getElementById("manifestoSubhead");
+        const sub = document.getElementById("manifestoSubhead");
         const total = manifestoContent.length;
+
         ScrollTrigger.create({
           trigger: "#manifesto",
           start: "top top",
@@ -564,44 +591,125 @@
           scrub: 0.2,
           onUpdate: (self) => {
             const p = self.progress;
-            // Split scroll region into n equal parts
             let i = Math.floor(p * total);
             if (i >= total) i = total - 1;
-            // Animate swap with fade
             if (headline.dataset.state != i || para.dataset.state != i) {
               gsap.to([headline, para], {
                 opacity: 0,
                 y: 40,
-                duration: 0.3,
+                duration: 0.28,
                 onComplete: () => {
                   headline.innerText = manifestoContent[i].headline;
                   para.innerHTML = manifestoContent[i].para;
-                  subhead.textContent = manifestoContent[i].subhead;
+                  sub.textContent = manifestoContent[i].subhead;
                   headline.dataset.state = para.dataset.state = i;
                   gsap.fromTo(
                     [headline, para],
                     { y: 40, opacity: 0 },
-                    { opacity: 1, y: 0, duration: 0.4, overwrite: true }
+                    { opacity: 1, y: 0, duration: 0.4 }
                   );
                 },
               });
             }
           },
         });
-      });
+      }
 
-      //Circle animation
-      gsap.to("#circleRevealContainer", {
-        clipPath: "circle(120% at 50% 50%)", // ensure bigger than screen for full reveal
-        ease: "power2.out",
-        duration: 1.3,
-        scrollTrigger: {
-          trigger: "#circleRevealContainer",
-          start: "top 80%", // reveal begins when section enters
-          end: "top 40%",
-          toggleActions: "play none none reverse",
-          scrub: false,
-        },
+      // circle reveal
+      function initCircleReveal() {
+        gsap.to("#circleRevealContainer", {
+          clipPath: "circle(120% at 50% 50%)",
+          ease: "power2.out",
+          duration: 1.3,
+          scrollTrigger: {
+            trigger: "#circleRevealContainer",
+            start: "top 80%",
+            end: "top 40%",
+            toggleActions: "play none none reverse",
+            scrub: false,
+          },
+        });
+      }
+
+      // section fade overlay transition logic between sections
+      function initSectionFadeTransitions() {
+        const fadeDiv = document.getElementById("transitionFade");
+        const allSections = Array.from(
+          document.querySelectorAll("#snapContainer > section")
+        );
+        allSections.forEach((section, idx) => {
+          if (idx === 0) return;
+          ScrollTrigger.create({
+            trigger: section,
+            start: "top 92%",
+            end: "top 82%",
+            onEnter: () => {
+              fadeDiv.style.opacity = "1";
+            },
+          });
+          ScrollTrigger.create({
+            trigger: section,
+            start: "top 81%",
+            end: "top 64%",
+            onEnter: () => {
+              fadeDiv.style.opacity = "0";
+            },
+          });
+        });
+      }
+
+      // footer slide up every time into view (restart)
+      function initFooterAnimation() {
+        const footer = document.querySelector("footer");
+        if (!footer) return;
+        gsap.set(footer, { y: 100, opacity: 0 });
+        ScrollTrigger.create({
+          trigger: footer,
+          start: "top bottom",
+          end: "top center",
+          onEnter: () =>
+            gsap.to(footer, {
+              y: 0,
+              opacity: 1,
+              duration: 1,
+              ease: "power3.out",
+            }),
+          onLeaveBack: () =>
+            gsap.to(footer, {
+              y: 100,
+              opacity: 0,
+              duration: 0.6,
+              ease: "power3.in",
+            }),
+          markers: false,
+        });
+      }
+
+      // animate initial lines, sidebar, manifesto etc. after DOM loaded
+      document.addEventListener("DOMContentLoaded", function () {
+        animateSectionLines();
+        initSidebar();
+        initManifesto();
+        initCircleReveal();
+        initSectionFadeTransitions();
+        initFooterAnimation();
+
+        // style sidebar dots
+        document.querySelectorAll(".sidebar-dot").forEach((dot) => {
+          dot.classList.add(
+            "text-white",
+            "text-sm",
+            "transition",
+            "duration-200",
+            "hover:font-bold",
+            "hover:text-indigo-400",
+            "pl-3",
+            "border-l",
+            "border-white",
+            "border-opacity-50",
+            "py-1"
+          );
+        });
       });
     </script>
   </body>

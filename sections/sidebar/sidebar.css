@@ -1,0 +1,25 @@
+/* #mainSidebar {
+  pointer-events: none;
+}
+
+.sidebar-dot {
+  pointer-events: auto;
+  display: inline-block;
+  text-decoration: none;
+  color: white;
+  font-weight: 500;
+  font-family: "Poppins", sans-serif;
+  transition: color 0.3s ease, background 0.4s ease, font-weight 0.3s ease;
+}
+
+.sidebar-dot:hover {
+  color: #a5b4fc; 
+}
+
+.sidebar-dot.active {
+  color: #6366f1 !important;
+  font-weight: 700 !important;
+  background: linear-gradient(90deg, #6366f1 0%, transparent 100%);
+  padding-left: 4px;
+  border-left: 2px solid #6366f1;
+} */

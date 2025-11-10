@@ -1,0 +1,73 @@
+<section
+  id="manifesto"
+  class="relative flex items-center justify-center overflow-hidden"
+  style="min-height: 100vh; height: 100vh"
+>
+  <div
+    id="manifestoBg"
+    class="absolute inset-0 will-change-transform"
+    style="
+      background-image: url('./assets/images/manifesto.avif');
+      background-size: cover;
+      background-position: center;
+      transition: transform 0.4s cubic-bezier(0.77, 0, 0.18, 1), filter 0.4s;
+    "
+  ></div>
+  <div class="absolute inset-0 bg-black/30"></div>
+
+  <div
+    class="z-20 flex flex-col justify-center items-end w-full h-full pr-10 md:pr-24 lg:pr-40"
+  >
+    <!-- Top fade -->
+    <div
+      class="absolute top-0 left-0 w-full h-48 pointer-events-none"
+      style="
+        background: linear-gradient(
+          to top,
+          rgba(0, 0, 0, 0) 20%,
+          rgba(0, 0, 0, 1) 100%
+        );
+      "
+    ></div>
+    <div class="max-w-2xl text-right mt-20">
+      <div class="flex gap-28 flex-col md:flex-row items-end justify-end mb-6">
+        <div class="flex flex-col items-end">
+          <span
+            id="manifestoSubhead"
+            class="text-white text-xl font-normal tracking-wide"
+            >OVA</span
+          >
+          <span
+            id="manifestoHeadline"
+            class="text-white text-[3.2rem] md:text-[4rem] leading-none font-semibold"
+            >Invests</span
+          >
+        </div>
+        <p
+          id="manifestoPara"
+          class="text-white text-base text-left md:text-lg font-normal"
+        >
+          In the most valuable, promising, and resilient assets.<br />The
+          concept of "value" at OVA is fundamentally multidimensional.
+        </p>
+      </div>
+      <div class="mt-48">
+        <span class="font-bold text-white text-base md:text-lg"
+          >Jean-Sébastien Bergeron</span
+        ><br />
+        <span class="text-white font-normal text-base">CEO & founder</span>
+      </div>
+    </div>
+    <!-- Gradient transition at bottom -->
+    <div
+      class="absolute bottom-0 left-0 w-full h-48 pointer-events-none"
+      style="
+        background: linear-gradient(
+          to bottom,
+          rgba(0, 0, 0, 0) 20%,
+          rgba(0, 0, 0, 1) 100%
+        );
+      "
+    ></div>
+  </div>
+</section>

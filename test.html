@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OVA Landing Clone — Updated</title>
+
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Fonts -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- GSAP + ScrollTrigger -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+  </head>
+
+  <body class="bg-black text-white">
+    <!-- NAVBAR -->
+    <div id="navbarContainer" class="fixed w-full z-[9999]"></div>
+
+    <!-- SIDEBAR (fixed, loaded dynamically) -->
+    <div id="sidebar"></div>
+
+    <!-- FADE OVERLAY -->
+    <div
+      id="transitionOverlay"
+      class="fixed inset-0 bg-black opacity-0 pointer-events-none z-[999]"
+    ></div>
+
+    <!-- MAIN CONTENT -->
+    <main id="snapContainer">
+      <div id="hero"></div>
+      <div id="section1"></div>
+      <div id="section2"></div>
+      <div id="section3"></div>
+      <div id="section4"></div>
+      <div id="section5"></div>
+      <div id="section6"></div>
+      <div id="section7"></div>
+      <div id="section8"></div>
+      <div id="blackSeparation1" class="blackSeparation"></div>
+      <div id="manifesto"></div>
+      <div id="blackSeparation2" class="blackSeparation"></div>
+      <div id="since"></div>
+      <div id="circleReveal"></div>
+      <div id="contact"></div>
+      <div id="footer"></div>
+    </main>
+
+    <script type="module">
+      async function loadSection(htmlPath, containerSelector, jsModulePath) {
+        try {
+          const container = document.querySelector(containerSelector);
+          if (!container) return;
+
+          // Load HTML
+          const res = await fetch(htmlPath);
+          const html = await res.text();
+          container.innerHTML = html;
+
+          // Optionally load JS
+          if (jsModulePath) {
+            const module = await import(jsModulePath);
+
+            // Try any exported init function
+            if (module.initSection) module.initSection();
+            else if (module.initContactSection) module.initContactSection();
+            else if (window.initManifestoSection) window.initManifestoSection();
+          }
+        } catch (err) {
+          console.error("Error loading section:", err);
+        }
+      }
+
+      const loadPromises = [
+        loadSection("./sections/navbar/navbar.html", "#navbarContainer"),
+        loadSection(
+          "./sections/hero/hero.html",
+          "#hero",
+          "./sections/hero/hero.js"
+          // "./sections/sidebar/sidebar.css"
+        ),
+        loadSection(
+          "./sections/sidebar/sidebar.html",
+          "#sidebar",
+          "./sections/sidebar/sidebar.js",
+          "./sections/sidebar/sidebar.css"
+        ),
+        loadSection(
+          "./sections/section1/section1.html",
+          "#section1",
+          "./sections/section1/section1.js"
+        ),
+        loadSection(
+          "./sections/section2/section2.html",
+          "#section2",
+          "./sections/section1/section1.js"
+        ),
+        loadSection(
+          "./sections/section3/section3.html",
+          "#section3",
+          "./sections/section1/section1.js"
+        ),
+        loadSection(
+          "./sections/section4/section4.html",
+          "#section4",
+          "./sections/section1/section1.js"
+        ),
+        loadSection(
+          "./sections/section5/section5.html",
+          "#section5",
+          "./sections/section1/section1.js"
+        ),
+        loadSection(
+          "./sections/section6/section6.html",
+          "#section6",
+          "./sections/section1/section1.js"
+        ),
+        loadSection(
+          "./sections/section7/section7.html",
+          "#section7",
+          "./sections/section1/section1.js"
+        ),
+        loadSection(
+          "./sections/section8/section8.html",
+          "#section8",
+          "./sections/section1/section1.js"
+        ),
+        loadSection(
+          "./sections/blackSeparation/blackSeparation.html",
+          "#blackSeparation1"
+        ),
+        loadSection(
+          "./sections/manifesto/manifesto.html",
+          "#manifesto",
+          "./sections/manifesto/manifesto.js"
+        ),
+        loadSection(
+          "./sections/blackSeparation/blackSeparation.html",
+          "#blackSeparation2"
+        ),
+        loadSection("./sections/since/since.html", "#since"),
+        loadSection(
+          "./sections/circleReveal/circleReveal.html",
+          "#circleReveal"
+        ),
+        loadSection(
+          "./sections/contact/contact.html",
+          "#contact",
+          "./sections/contact/contact.js"
+        ),
+        loadSection(
+          "./sections/footer/footer.html",
+          "#footer",
+          "./sections/footer/footer.js"
+        ),
+      ];
+
+      function initSectionTransitions() {
+        const overlay = document.getElementById("transitionOverlay");
+        if (!overlay) return;
+
+        gsap.set(overlay, { autoAlpha: 0 });
+
+        const sections = document.querySelectorAll("main > div[id]");
+
+        sections.forEach((sec) => {
+          ScrollTrigger.create({
+            trigger: sec,
+            start: "center center", // trigger in the middle of viewport
+            end: "center center",
+            onEnter: () => flashOverlay(),
+            onEnterBack: () => flashOverlay(),
+          });
+        });
+
+        function flashOverlay() {
+          gsap
+            .timeline()
+            .to(overlay, {
+              autoAlpha: 1,
+              duration: 0.4, // increased from 0.15
+              ease: "power1.inOut",
+            })
+            .to(overlay, {
+              autoAlpha: 0,
+              duration: 0.6, // increased from 0.3
+              ease: "power2.out",
+            });
+        }
+      }
+
+      // Hide sidebar on specific sections
+      function initSidebarVisibility() {
+        const sidebar = document.querySelector("#sidebar");
+        if (!sidebar) return;
+
+        const hiddenSections = [
+          "#manifesto",
+          "#sinceContainer",
+          "#circleRevealContainer",
+          "#contactContainer",
+          "#footerContainer",
+        ];
+
+        hiddenSections.forEach((selector) => {
+          const section = document.querySelector(selector);
+          if (!section) return;
+
+          ScrollTrigger.create({
+            trigger: section,
+            start: "top center",
+            end: "bottom center",
+            onEnter: () => gsap.to(sidebar, { autoAlpha: 0, duration: 1 }),
+            onLeaveBack: () => gsap.to(sidebar, { autoAlpha: 1, duration: 1 }),
+            onEnterBack: () => gsap.to(sidebar, { autoAlpha: 0, duration: 1 }),
+            onLeave: () => gsap.to(sidebar, { autoAlpha: 1, duration: 1 }),
+          });
+        });
+      }
+
+      function initPinnedSections() {
+        // ✅ List only the sections you want to pin
+        const pinnedSectionIds = [
+          "section1",
+          "section3",
+          "section4",
+          "section5",
+          "section6",
+          "section7",
+        ]; // example
+        const sections = pinnedSectionIds.map((id) =>
+          document.getElementById(id)
+        );
+
+        sections.forEach((sec) => {
+          if (!sec) return; // safety check
+
+          ScrollTrigger.create({
+            trigger: sec,
+            start: "top top",
+            end: "+=100%", // pin for full viewport height
+            pin: true,
+            pinSpacing: false, // removes extra space
+            scrub: 0.2, // smooth scroll
+            markers: false, // set to true for debugging
+          });
+        });
+      }
+
+      // Run both only after all sections are loaded
+      Promise.all(loadPromises).then(() => {
+        initSectionTransitions();
+        initSidebarVisibility();
+        initPinnedSections();
+        // Animate blackSeparations after they are loaded
+        const blackSeparations = document.querySelectorAll(".blackSeparation");
+        blackSeparations.forEach((sep) => {
+          gsap.fromTo(
+            sep,
+            { opacity: 0 },
+            {
+              opacity: 1,
+              scrollTrigger: {
+                trigger: sep,
+                start: "top bottom",
+                end: "bottom top",
+                scrub: true,
+              },
+            }
+          );
+        });
+      });
+    </script>
+  </body>
+</html>
