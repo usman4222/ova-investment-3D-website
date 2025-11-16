@@ -1,0 +1,31 @@
+/* Wrapper holds both overlapping sections */
+#since-sunrise-wrapper {
+  height: 100vh;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Front section (initially visible) */
+#sinceSection {
+  background: url('/assets/images/about-1.avif') center center / cover no-repeat;
+}
+
+/* Back section (revealed via circle) */
+#circleRevealContainer {
+  background: url('/assets/images/about-2.avif') center center / cover no-repeat;
+  -webkit-clip-path: circle(0% at 50% 100%);
+  clip-path: circle(0% at 50% 100%);
+  transition: clip-path 0.3s ease-out;
+}
+
+/* Text shadow for readability */
+h1,
+h2 {
+  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  margin: 0;
+}
+
+/* Optional: perspective for 3D word animation */
+#animatedText {
+  perspective: 500px;
+}

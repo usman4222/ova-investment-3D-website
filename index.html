@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>OVA Landing Clone — Updated</title>
 
-    <!-- Tailwind (CDN quick) -->
+    <!-- Tailwind -->
     <script src="https://cdn.tailwindcss.com"></script>
 
     <!-- Fonts -->
@@ -13,508 +13,238 @@
       href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap"
       rel="stylesheet"
     />
+    <link rel="stylesheet" href="./sections/since/since.css" />
+
 
     <!-- GSAP + ScrollTrigger -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
 
-    <style>
-      :root {
-        --overlay-z: 9999;
+    <!-- ✅ ADD: Import Map for Three.js -->
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+          "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+        }
       }
-      body {
-        margin: 0;
-        font-family: "Poppins", sans-serif;
-        background-color: black;
-        color: white;
-        overflow-y: auto;
-      }
-      html {
-        scroll-behavior: smooth;
-      }
-
-      /* small helpers */
-      .hidden-by-default {
-        display: none;
-      }
-
-      #transitionOverlay {
-        transition: opacity 0.8s ease;
-        pointer-events: none;
-      }
-
-      .sidebar-dot {
-        transition: color 0.6s cubic-bezier(0.8, 0, 0.2, 1),
-          border 0.6s cubic-bezier(0.8, 0, 0.2, 1),
-          font-weight 0.5s cubic-bezier(0.8, 0, 0.2, 1),
-          background 0.6s cubic-bezier(0.8, 0, 0.2, 1);
-      }
-      .sidebar-dot.active {
-        color: #6366f1 !important; /* Tailwind indigo-400 */
-        border-left-width: 4px !important;
-        border-color: #6366f1 !important;
-        font-weight: bold !important;
-        background: linear-gradient(90deg, #6366f1 0%, transparent 100%);
-      }
-
-      /* Menu overlay */
-      #menuOverlay {
-        background: rgba(4, 4, 6, 0.98);
-        backdrop-filter: blur(6px);
-      }
-
-      /* Ensure canvas covers and is interactive when needed */
-      canvas#draw {
-        display: block;
-        width: 100%;
-        height: 100%;
-      }
-
-      /* responsive thumbnail */
-      .menu-thumb {
-        height: 160px;
-        object-fit: cover;
-      }
-    </style>
+    </script>
   </head>
 
-  <body class="relative min-h-screen antialiased">
-    <!-- NAVBAR CONTAINER (we'll inject or keep inline small nav) -->
+  <body class="bg-black text-white">
+    <!-- NAVBAR -->
     <div id="navbarContainer" class="fixed w-full z-[9999]"></div>
 
-    <!-- HERO (with canvas and logo) -->
-    <section id="heroSection" class="relative w-full h-screen">
-      <div class="absolute inset-0 -z-10">
-        <img
-          id="bgImage"
-          src="./assets/images/hero-1.avif"
-          alt="Background"
-          class="w-full h-full object-cover opacity-70 transition-opacity duration-500"
-        />
-      </div>
+    <!-- SIDEBAR (fixed, loaded dynamically) -->
+    <div id="sidebar"></div>
 
-      <div
-        id="logoScreen"
-        class="absolute inset-0 flex items-center justify-center z-30"
-        style="background: rgba(0, 0, 0, 0.5)"
-      >
-        <img
-          src="./assets/images/logo.avif"
-          alt="Logo"
-          id="logoImage"
-          class="w-48 h-auto"
-        />
-      </div>
-
-      <canvas
-        id="draw"
-        class="absolute inset-0 w-full h-full block z-20"
-      ></canvas>
-
-      <div
-        id="textOverlay"
-        class="absolute inset-0 flex flex-col items-center justify-center text-center text-white opacity-0 transition-opacity duration-1000 pointer-events-none z-40"
-      >
-        <div class="mb-20">
-          <h1 class="text-4xl md:text-6xl">Valuable, that is</h1>
-          <div class="flex items-center justify-center mb-8">
-            <h1 class="text-4xl md:text-6xl mr-3">Our</h1>
-            <span
-              id="typewriter"
-              class="text-4xl md:text-6xl font-semibold"
-            ></span>
-          </div>
-        </div>
-        <p class="text-[17px] font-[400] max-w-xl mt-8">
-          OVA is an investment fund built around a central promise: to invest
-          disruptively in the most valuable, promising, and resilient assets.
-        </p>
-      </div>
-    </section>
-
-    <!-- second section (revealed after hero) -->
-    <section
-      id="secondSection"
-      class="w-full min-h-screen flex items-center justify-center opacity-0 transition-opacity duration-[1000ms]"
-      style="
-        background-image: url('./assets/images/hero-2.avif');
-        background-size: cover;
-        background-position: center;
-      "
-    >
-      <h2 class="text-3xl font-bold text-white">This is the second section</h2>
-    </section>
-
-    <!-- transition overlay (black full-screen fade) -->
-    <div
+    <!-- FADE OVERLAY -->
+    <!-- <div
       id="transitionOverlay"
-      class="fixed inset-0 bg-black opacity-0 pointer-events-none z-[9999] transition-opacity duration-[1000ms]"
-    ></div>
+      class="fixed inset-0 bg-black opacity-0 pointer-events-none z-[999]"
+    ></div> -->
 
-    <!-- Sidebar Navigation -->
-    <aside
-      id="mainSidebar"
-      class="fixed right-8 top-1/4 z-30 flex flex-col space-y-2"
-    >
-      <a href="#section1" class="sidebar-dot">01</a>
-      <a href="#section2" class="sidebar-dot">02</a>
-      <a href="#section3" class="sidebar-dot">03</a>
-      <a href="#section4" class="sidebar-dot">04</a>
-      <a href="#section5" class="sidebar-dot">05</a>
-      <a href="#section6" class="sidebar-dot">06</a>
-      <a href="#section7" class="sidebar-dot">07</a>
-      <a href="#section8" class="sidebar-dot">08</a>
-    </aside>
-
-    <!-- MAIN CONTENT (multiple sections) -->
+    <!-- MAIN CONTENT -->
     <main id="snapContainer">
-      <!-- Section 1 -->
-      <section
-        id="section1"
-        class="relative h-screen flex items-center justify-center overflow-hidden"
-        style="
-          background-image: url('./assets/images/slider-image-1.avif');
-          background-size: cover;
-          background-position: center;
-        "
-      >
-        <div class="absolute inset-0 bg-black/40"></div>
-        <div
-          class="relative z-10 flex flex-col justify-center items-center text-center w-full h-full"
-        >
-          <div
-            class="animatedText h-full w-full flex flex-col items-start justify-between pl-10 pt-28 pb-10 space-y-8"
-          >
-            <h1
-              class="text-white text-5xl font-normal leading-tight drop-shadow-lg text-left"
-            >
-              <span class="line block"
-                >By focusing on companies transforming</span
-              >
-              <span class="line block"
-                >the digital landscape,
-                <span class="text-gray-300 font-bold">OVA</span>
-                identifies</span
-              >
-              <span class="line block">solutions capable of addressing</span>
-              <span class="line block"
-                >contemporary challenges and generating</span
-              >
-              <span class="line block"
-                >significant and sustainable returns.</span
-              >
-            </h1>
-
-            <div class="mt-8 flex flex-col">
-              <h2
-                class="font-bold text-2xl md:text-3xl text-left mb-2 tracking-wide text-white line block"
-              >
-                TECHNOLOGY
-              </h2>
-              <p
-                class="text-white text-opacity-90 leading-tight max-w-lg text-left mx-auto line block"
-              >
-                OVA recognizes the exceptional potential of the technology
-                sector where each breakthrough opens up promising investment
-                opportunities.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Manifesto -->
-      <section
-        id="manifesto"
-        class="relative flex items-center justify-center overflow-hidden"
-        style="min-height: 100vh; height: 100vh"
-      >
-        <div
-          id="manifestoBg"
-          class="absolute inset-0 will-change-transform"
-          style="
-            background-image: url('./assets/images/manifesto.avif');
-            background-size: cover;
-            background-position: center;
-            transition: transform 0.4s cubic-bezier(0.77, 0, 0.18, 1),
-              filter 0.4s;
-          "
-        ></div>
-        <div class="absolute inset-0 bg-black/30"></div>
-
-        <div
-          class="z-20 flex flex-col justify-center items-end w-full h-full pr-10 md:pr-24 lg:pr-40"
-        >
-          <div class="max-w-2xl text-right mt-20">
-            <div
-              class="flex gap-28 flex-col md:flex-row items-end justify-end mb-6"
-            >
-              <div class="flex flex-col items-end">
-                <span
-                  id="manifestoSubhead"
-                  class="text-white text-xl font-normal tracking-wide"
-                  >OVA</span
-                >
-                <span
-                  id="manifestoHeadline"
-                  class="text-white text-[3.2rem] md:text-[4rem] leading-none font-semibold"
-                  >Invests</span
-                >
-              </div>
-              <p
-                id="manifestoPara"
-                class="text-white text-base text-left md:text-lg font-normal"
-              >
-                In the most valuable, promising, and resilient assets.<br />The
-                concept of "value" at OVA is fundamentally multidimensional.
-              </p>
-            </div>
-            <div class="mt-48">
-              <span class="font-bold text-white text-base md:text-lg"
-                >Jean-Sébastien Bergeron</span
-              ><br />
-              <span class="text-white font-normal text-base"
-                >CEO & founder</span
-              >
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Since -->
-      <section
-        class="relative h-screen w-full flex items-center justify-center overflow-hidden"
-        style="
-          background: url('./assets/images/about-1.avif') center center / cover
-            no-repeat;
-        "
-      >
-        <div class="absolute inset-0 bg-black/20"></div>
-        <div
-          class="z-10 w-full flex flex-col items-center justify-center text-center"
-        >
-          <h1 class="text-white text-5xl md:text-7xl font-normal">
-            Since<br />its creation,
-          </h1>
-        </div>
-      </section>
-
-      <!-- About (circle reveal) -->
-      <section
-        class="relative h-screen w-full flex items-center justify-center overflow-hidden"
-        style="
-          background: url('./assets/images/about-2.avif') center center / cover
-            no-repeat;
-        "
-      >
-        <div class="absolute inset-0 bg-black/20"></div>
-        <div
-          id="circleRevealContainer"
-          class="absolute inset-0 h-full w-full flex items-center justify-center z-30"
-          style="
-            clip-path: circle(0% at 50% 50%);
-            transition: clip-path 1.3s cubic-bezier(0.76, 0, 0.24, 1);
-            background: inherit;
-          "
-        >
-          <div class="w-full h-full flex items-center justify-center">
-            <div
-              class="z-10 w-full flex flex-col items-center justify-center text-center"
-            >
-              <h2
-                class="text-white text-3xl md:text-4xl lg:text-5xl font-normal max-w-xl mx-auto leading-normal"
-              >
-                OVA is an investment fund dedicated to identifying and
-                developing exceptional opportunities in strategic sectors.
-                <span class="block mt-4"></span>
-                Specialized in real estate, we have built a diversified
-                portfolio worth over $200 million...
-              </h2>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Contact Section (will be loaded dynamically) -->
-      <div id="contactContainer"></div>
-
-      <!-- Footer -->
-      <footer
-        class="w-full py-10 px-4 md:px-20 flex flex-col md:flex-row items-start md:items-center justify-between"
-        style="background: linear-gradient(0deg, #715046 0%, #b28e77 100%)"
-      >
-        <div>
-          <div
-            class="text-white font-medium text-base md:text-lg text-right md:text-left mb-1"
-          >
-            5323 Rue Brebeuf,<br />Montréal, QC H2J 3L8
-          </div>
-        </div>
-        <div
-          class="flex flex-col items-end md:items-center md:flex-row md:space-x-2 mt-10 md:mt-0 space-y-2 md:space-y-0"
-        >
-          <a
-            href="https://linkedin.com/"
-            target="_blank"
-            class="inline-block bg-[#333] rounded px-4 py-2 text-white font-semibold tracking-wide text-base hover:bg-[#444] transition mr-3"
-            >LINKEDIN ↗</a
-          >
-          <a
-            href="mailto:contact@ova.com"
-            class="inline-block bg-[#333] rounded px-4 py-2 text-white font-semibold tracking-wide text-base hover:bg-[#444] transition"
-            >CONTACT ↗</a
-          >
-        </div>
-      </footer>
+      <div id="heroSection"></div>
+      <div id="blackSeparation3" class="blackSeparation"></div>
+      <div id="section1"></div>
+      <div id="section2"></div>
+      <div id="section3"></div>
+      <div id="section4"></div>
+      <div id="section5"></div>
+      <div id="section6"></div>
+      <div id="section7"></div>
+      <div id="section8"></div>
+      <div id="blackSeparation1" class="blackSeparation"></div>
+      <div id="manifesto"></div>
+      <div id="blackSeparation2" class="blackSeparation"></div>
+      <div id="since"></div>
+      <!-- <div id="circleReveal"></div> -->
+      <div id="contact"></div>
+      <div id="footer"></div>
     </main>
 
-    <!-- Transition fade (used between sections) -->
-    <div
-      id="transitionFade"
-      class="fixed inset-0 bg-black pointer-events-none opacity-0 z-[9999]"
-      style="transition: opacity 0.6s cubic-bezier(0.76, 0, 0.24, 1)"
-    ></div>
+    <script type="module">
+      async function loadSection(htmlPath, containerSelector, jsModulePath) {
+        try {
+          const container = document.querySelector(containerSelector);
+          if (!container) return;
 
-    <!-- Fullscreen Menu Overlay (visual thumbnails) -->
-    <div
-      id="menuOverlay"
-      class="fixed inset-0 z-[100000] hidden flex-col items-center justify-start p-8 overflow-auto"
-    >
-      <button id="closeMenu" class="text-white text-2xl absolute top-6 right-8">
-        ✕
-      </button>
-      <h3 class="text-2xl font-semibold mb-6">Explore — sections</h3>
-      <div
-        class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-6xl"
-      >
-        <!-- We'll duplicate a thumbnail element for each important section -->
-        <div class="menu-item cursor-pointer" data-target="#section1">
-          <img
-            src="./assets/images/slider-image-1.avif"
-            class="w-full menu-thumb rounded-lg"
-            alt=""
-          />
-          <h4 class="mt-2 font-semibold">Technology</h4>
-        </div>
-        <div class="menu-item cursor-pointer" data-target="#manifesto">
-          <img
-            src="./assets/images/manifesto.avif"
-            class="w-full menu-thumb rounded-lg"
-            alt=""
-          />
-          <h4 class="mt-2 font-semibold">Manifesto</h4>
-        </div>
-        <div class="menu-item cursor-pointer" data-target="#secondSection">
-          <img
-            src="./assets/images/hero-2.avif"
-            class="w-full menu-thumb rounded-lg"
-            alt=""
-          />
-          <h4 class="mt-2 font-semibold">Second Section</h4>
-        </div>
-        <div
-          class="menu-item cursor-pointer"
-          data-target="#circleRevealContainer"
-        >
-          <img
-            src="./assets/images/about-2.avif"
-            class="w-full menu-thumb rounded-lg"
-            alt=""
-          />
-          <h4 class="mt-2 font-semibold">About</h4>
-        </div>
-        <div class="menu-item cursor-pointer" data-target="#contact">
-          <img
-            src="./assets/images/contact.avif"
-            class="w-full menu-thumb rounded-lg"
-            alt=""
-          />
-          <h4 class="mt-2 font-semibold">Contact</h4>
-        </div>
-        <div class="menu-item cursor-pointer" data-target="footer">
-          <img
-            src="./assets/images/slider-image-5.avif"
-            class="w-full menu-thumb rounded-lg"
-            alt=""
-          />
-          <h4 class="mt-2 font-semibold">Footer</h4>
-        </div>
-      </div>
-    </div>
+          // Load HTML
+          const res = await fetch(htmlPath);
+          const html = await res.text();
+          container.innerHTML = html;
 
-    <!-- NAVBAR HTML (inline small nav so no external fetch needed) -->
-    <nav
-      id="siteNav"
-      class="fixed top-0 left-0 w-full flex items-center justify-between px-6 py-4 bg-transparent text-white z-[99999]"
-    >
-      <div class="flex gap-4 items-center">
-        <button
-          id="navContact"
-          class="bg-[#8F8D89] text-gray-800 uppercase px-3 py-2 text-[13px] rounded"
-        >
-          Contact
-        </button>
-        <button
-          id="navAbout"
-          class="bg-[#8F8D89] text-gray-800 uppercase px-3 py-2 text-[13px] rounded"
-        >
-          About Us
-        </button>
-      </div>
+          // Optionally load JS
+          if (jsModulePath) {
+            const module = await import(jsModulePath);
 
-      <div class="text-sm">7:13 MTL</div>
+            // Try any exported init function
+            if (module.initSection) module.initSection();
+            else if (module.initContactSection) module.initContactSection();
+            else if (window.initManifestoSection) window.initManifestoSection();
+          }
+        } catch (err) {
+          console.error("Error loading section:", err);
+        }
+      }
 
-      <div
-        class="flex items-center space-x-5 text-lg bg-[#8F8D89] px-3 py-2 rounded-lg"
-      >
-        <button
-          id="openMenuBtn"
-          class="text-gray-800 uppercase px-3 py-1 text-[14px]"
-        >
-          Menu
-        </button>
-        <div class="w-8 h-px bg-gray-700"></div>
-        <div>
-          <img
-            src="./assets/images/logo.avif"
-            class="w-32 h-10 object-contain"
-            alt="logo"
-          />
-        </div>
-      </div>
-    </nav>
+      const loadPromises = [
+        loadSection("./sections/navbar/navbar.html", "#navbarContainer"),
+        loadSection(
+          "./sections/hero/hero.html",
+          "#heroSection",
+          "./sections/hero/hero.js"
+        ),
+        loadSection(
+          "./sections/blackSeparation/blackSeparation.html",
+          "#blackSeparation3"
+        ),
+        loadSection(
+          "./sections/sidebar/sidebar.html",
+          "#sidebar",
+          "./sections/sidebar/sidebar.js"
+        ),
+        loadSection(
+          "./sections/section1/section1.html",
+          "#section1",
+          "./sections/section1/section1.js"
+        ),
+        loadSection(
+          "./sections/section2/section2.html",
+          "#section2",
+          "./sections/section1/section1.js"
+        ),
+        loadSection(
+          "./sections/section3/section3.html",
+          "#section3",
+          "./sections/section1/section1.js"
+        ),
+        loadSection(
+          "./sections/section4/section4.html",
+          "#section4",
+          "./sections/section1/section1.js"
+        ),
+        loadSection(
+          "./sections/section5/section5.html",
+          "#section5",
+          "./sections/section1/section1.js"
+        ),
+        loadSection(
+          "./sections/section6/section6.html",
+          "#section6",
+          "./sections/section1/section1.js"
+        ),
+        loadSection(
+          "./sections/section7/section7.html",
+          "#section7",
+          "./sections/section1/section1.js"
+        ),
+        loadSection(
+          "./sections/section8/section8.html",
+          "#section8",
+          "./sections/section1/section1.js"
+        ),
+        loadSection(
+          "./sections/blackSeparation/blackSeparation.html",
+          "#blackSeparation1"
+        ),
+        loadSection(
+          "./sections/manifesto/manifesto.html",
+          "#manifesto",
+          "./sections/manifesto/manifesto.js"
+        ),
+        loadSection(
+          "./sections/blackSeparation/blackSeparation.html",
+          "#blackSeparation2"
+        ),
+        loadSection("./sections/since/since.html", 
+        "#since",
+        "./sections/since/since.js",
+        "./sections/since/since.css",
+        ),
+        // loadSection(
+        //   "./sections/circleReveal/circleReveal.html",
+        //   "#circleReveal"
+        // ),
+        loadSection(
+          "./sections/contact/contact.html",
+          "#contact",
+          "./sections/contact/contact.js"
+        ),
+        loadSection(
+          "./sections/footer/footer.html",
+          "#footer",
+          "./sections/footer/footer.js"
+        ),
+      ];
 
-    <!-- MAIN animations and behavior using GSAP/ScrollTrigger -->
-    <script>
-      gsap.registerPlugin(ScrollTrigger);
+      function initSectionTransitions() {
+        const overlay = document.getElementById("transitionOverlay");
+        if (!overlay) return;
 
-      // Animate lines in sections
-      function animateSectionLines() {
-        document.querySelectorAll(".animatedText").forEach((animated) => {
-          const section = animated.closest("section");
-          const lines = animated.querySelectorAll(".line");
-          gsap.fromTo(
-            lines,
-            { opacity: 0, y: 60 },
-            {
-              opacity: 1,
-              y: 0,
-              duration: 0.8,
-              ease: "power3.out",
-              stagger: 0.18,
-              scrollTrigger: {
-                trigger: section,
-                start: "top center+=80",
-                toggleActions: "play none none reverse",
-              },
-            }
-          );
+        gsap.set(overlay, { autoAlpha: 0 });
+
+        const sections = document.querySelectorAll("main > div[id]");
+
+        sections.forEach((sec) => {
+          ScrollTrigger.create({
+            trigger: sec,
+            start: "center center",
+            end: "center center",
+            onEnter: () => flashOverlay(),
+            onEnterBack: () => flashOverlay(),
+          });
+        });
+
+        function flashOverlay() {
+          gsap
+            .timeline()
+            .to(overlay, {
+              autoAlpha: 1,
+              duration: 0.4,
+              ease: "power1.inOut",
+            })
+            .to(overlay, {
+              autoAlpha: 0,
+              duration: 0.6,
+              ease: "power2.out",
+            });
+        }
+      }
+
+      function initSidebarVisibility() {
+        const sidebar = document.querySelector("#sidebar");
+        if (!sidebar) return;
+
+        const hiddenSections = [
+          "heroSection",
+          "#manifesto",
+          "#since",
+          "#circleReveal",
+          "#contact",
+          "#footer",
+        ];
+
+        hiddenSections.forEach((selector) => {
+          const section = document.querySelector(selector);
+          if (!section) return;
+
+          ScrollTrigger.create({
+            trigger: section,
+            start: "top center",
+            end: "bottom center",
+            onEnter: () => gsap.to(sidebar, { autoAlpha: 0, duration: 1 }),
+            onLeaveBack: () => gsap.to(sidebar, { autoAlpha: 1, duration: 1 }),
+            onEnterBack: () => gsap.to(sidebar, { autoAlpha: 0, duration: 1 }),
+            onLeave: () => gsap.to(sidebar, { autoAlpha: 1, duration: 1 }),
+          });
         });
       }
 
-      // Sidebar dots styling and active
-      function initSidebar() {
-        const sectionIds = [
+      function initPinnedSections() {
+        const pinnedSectionIds = [
           "section1",
           "section2",
           "section3",
@@ -522,192 +252,49 @@
           "section5",
           "section6",
           "section7",
-          "section8",
         ];
-        const dots = document.querySelectorAll(".sidebar-dot");
-        sectionIds.forEach((id, idx) => {
-          ScrollTrigger.create({
-            trigger: "#" + id,
-            start: "top center",
-            end: "bottom center",
-            onEnter: () => setActive(idx),
-            onEnterBack: () => setActive(idx),
-          });
-        });
-        function setActive(i) {
-          dots.forEach((d, di) => d.classList.toggle("active", di === i));
-        }
-      }
-
-      // manifesto pin + text cycling
-      function initManifesto() {
-        const manifestoContent = [
-          {
-            headline: "Invests",
-            para: 'In the most valuable, promising, and resilient assets.<br>The concept of "value" at OVA is fundamentally multidimensional.',
-            subhead: "OVA",
-          },
-          {
-            headline: "Elevates",
-            para: "Redefining progress by nurturing innovation,<br>OVA creates opportunity beyond traditional boundaries.",
-            subhead: "OVA",
-          },
-          {
-            headline: "Transforms",
-            para: "Committed to building a sustainable and<br>remarkable legacy for generations to come.",
-            subhead: "OVA",
-          },
-        ];
-
-        // pin section
-        ScrollTrigger.create({
-          trigger: "#manifesto",
-          start: "top top",
-          end: "+=300%",
-          pin: true,
-          pinSpacing: true,
-        });
-
-        gsap.to("#manifestoBg", {
-          scale: 1.22,
-          filter: "brightness(0.85) blur(2px)",
-          scrollTrigger: {
-            trigger: "#manifesto",
-            start: "top top",
-            end: "+=300%",
-            scrub: 1,
-          },
-        });
-
-        const headline = document.getElementById("manifestoHeadline");
-        const para = document.getElementById("manifestoPara");
-        const sub = document.getElementById("manifestoSubhead");
-        const total = manifestoContent.length;
-
-        ScrollTrigger.create({
-          trigger: "#manifesto",
-          start: "top top",
-          end: "+=300%",
-          scrub: 0.2,
-          onUpdate: (self) => {
-            const p = self.progress;
-            let i = Math.floor(p * total);
-            if (i >= total) i = total - 1;
-            if (headline.dataset.state != i || para.dataset.state != i) {
-              gsap.to([headline, para], {
-                opacity: 0,
-                y: 40,
-                duration: 0.28,
-                onComplete: () => {
-                  headline.innerText = manifestoContent[i].headline;
-                  para.innerHTML = manifestoContent[i].para;
-                  sub.textContent = manifestoContent[i].subhead;
-                  headline.dataset.state = para.dataset.state = i;
-                  gsap.fromTo(
-                    [headline, para],
-                    { y: 40, opacity: 0 },
-                    { opacity: 1, y: 0, duration: 0.4 }
-                  );
-                },
-              });
-            }
-          },
-        });
-      }
-
-      // circle reveal
-      function initCircleReveal() {
-        gsap.to("#circleRevealContainer", {
-          clipPath: "circle(120% at 50% 50%)",
-          ease: "power2.out",
-          duration: 1.3,
-          scrollTrigger: {
-            trigger: "#circleRevealContainer",
-            start: "top 80%",
-            end: "top 40%",
-            toggleActions: "play none none reverse",
-            scrub: false,
-          },
-        });
-      }
-
-      // section fade overlay transition logic between sections
-      function initSectionFadeTransitions() {
-        const fadeDiv = document.getElementById("transitionFade");
-        const allSections = Array.from(
-          document.querySelectorAll("#snapContainer > section")
+        const sections = pinnedSectionIds.map((id) =>
+          document.getElementById(id)
         );
-        allSections.forEach((section, idx) => {
-          if (idx === 0) return;
+
+        sections.forEach((sec) => {
+          if (!sec) return;
+
           ScrollTrigger.create({
-            trigger: section,
-            start: "top 92%",
-            end: "top 82%",
-            onEnter: () => {
-              fadeDiv.style.opacity = "1";
-            },
-          });
-          ScrollTrigger.create({
-            trigger: section,
-            start: "top 81%",
-            end: "top 64%",
-            onEnter: () => {
-              fadeDiv.style.opacity = "0";
-            },
+            trigger: sec,
+            start: "top top",
+            end: "+=100%",
+            pin: true,
+            pinSpacing: false,
+            scrub: 0.2,
+            markers: false,
           });
         });
       }
 
-      // footer slide up every time into view (restart)
-      function initFooterAnimation() {
-        const footer = document.querySelector("footer");
-        if (!footer) return;
-        gsap.set(footer, { y: 100, opacity: 0 });
-        ScrollTrigger.create({
-          trigger: footer,
-          start: "top bottom",
-          end: "top center",
-          onEnter: () =>
-            gsap.to(footer, {
-              y: 0,
+      // Run after all sections are loaded
+      Promise.all(loadPromises).then(() => {
+        gsap.registerPlugin(ScrollTrigger);
+
+        initSectionTransitions();
+        initSidebarVisibility();
+        initPinnedSections();
+
+        // Animate blackSeparations
+        const blackSeparations = document.querySelectorAll(".blackSeparation");
+        blackSeparations.forEach((sep) => {
+          gsap.fromTo(
+            sep,
+            { opacity: 0 },
+            {
               opacity: 1,
-              duration: 1,
-              ease: "power3.out",
-            }),
-          onLeaveBack: () =>
-            gsap.to(footer, {
-              y: 100,
-              opacity: 0,
-              duration: 0.6,
-              ease: "power3.in",
-            }),
-          markers: false,
-        });
-      }
-
-      // animate initial lines, sidebar, manifesto etc. after DOM loaded
-      document.addEventListener("DOMContentLoaded", function () {
-        animateSectionLines();
-        initSidebar();
-        initManifesto();
-        initCircleReveal();
-        initSectionFadeTransitions();
-        initFooterAnimation();
-
-        // style sidebar dots
-        document.querySelectorAll(".sidebar-dot").forEach((dot) => {
-          dot.classList.add(
-            "text-white",
-            "text-sm",
-            "transition",
-            "duration-200",
-            "hover:font-bold",
-            "hover:text-indigo-400",
-            "pl-3",
-            "border-l",
-            "border-white",
-            "border-opacity-50",
-            "py-1"
+              scrollTrigger: {
+                trigger: sep,
+                start: "top bottom",
+                end: "bottom top",
+                scrub: true,
+              },
+            }
           );
         });
       });

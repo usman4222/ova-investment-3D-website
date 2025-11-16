@@ -1,48 +1,52 @@
 <section
-  class="relative h-screen w-full flex items-center justify-center overflow-hidden"
-  id="since"
-  style="
-    background: url('../../assets/images/about-1.avif') center center / cover no-repeat;
-  "
+  id="since-sunrise-wrapper"
+  class="relative w-full h-screen overflow-hidden"
 >
   <!-- Top fade -->
   <div
-    class="absolute top-0 left-0 w-full h-48 pointer-events-none"
-    style="background: linear-gradient(to top, rgba(0,0,0,0) 20%, rgba(0,0,0,1) 100%);"
+    class="absolute top-0 left-0 w-full h-48 pointer-events-none z-50"
+    style="
+      background: linear-gradient(
+        to bottom,
+        rgba(0, 0, 0, 1),
+        rgba(0, 0, 0, 0)
+      );
+    "
   ></div>
 
-  <div class="absolute inset-0 bg-black/20"></div>
+  <!-- FRONT SECTION -->
   <div
-    class="z-10 w-full flex flex-col items-center justify-center text-center"
+    id="sinceSection"
+    class="absolute inset-0 z-30 flex flex-col items-center justify-center h-full w-full"
   >
-    <h1 class="text-white text-5xl md:text-7xl font-normal">
+    <div class="absolute inset-0 bg-black/40"></div>
+    <h1 class="text-white text-6xl font-normal text-center leading-tight z-40">
       Since<br />its creation,
     </h1>
+  </div>
+
+  <!-- BACK SECTION -->
+  <div
+    id="circleRevealContainer"
+    class="absolute inset-0 z-10 flex items-center justify-center"
+  >
+    <div class="absolute inset-0 bg-black/40"></div>
+    <div
+      id="circleText"
+      class="absolute inset-0 flex items-center justify-center text-center p-4 opacity-0 z-50"
+    >
+      <h2
+        id="animatedText"
+        class="text-white text-xl max-w-xl mx-auto leading-relaxed"
+      >
+        OVA is an investment fund dedicated to identifying and developing
+        exceptional opportunities in strategic sectors. Specialized in real
+        estate, we have built a diversified portfolio worth over $200 million,
+        including more than 500 multi-residential units and a wide range of
+        industrial properties. Through proven value-creation strategies, we
+        achieve steady growth while optimizing the use of minimal initial
+        capital.
+      </h2>
+    </div>
   </div>
 </section>
-
-
-
-
-
-
-
-
-
-<!-- <section
-  class="relative h-screen w-full flex items-center justify-center overflow-hidden"
-  id="since"
-  style="
-    background: url('../../assets/images/about-1.avif') center center / cover
-      no-repeat;
-  "
->
-  <div class="absolute inset-0 bg-black/20"></div>
-  <div
-    class="z-10 w-full flex flex-col items-center justify-center text-center"
-  >
-    <h1 class="text-white text-5xl md:text-7xl font-normal">
-      Since<br />its creation,
-    </h1>
-  </div>
-</section> -->

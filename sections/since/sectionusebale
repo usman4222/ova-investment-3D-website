@@ -1,0 +1,60 @@
+export function initSection() {
+  gsap.registerPlugin(ScrollTrigger);
+
+  const wrapper = document.getElementById("since-sunrise-wrapper");
+  const reveal = document.getElementById("circleRevealContainer");
+  const sinceSection = document.getElementById("sinceSection");
+  const circleText = document.getElementById("circleText");
+
+  // 🟢 Initial states
+  gsap.set(reveal, { clipPath: "circle(0% at 50% 100%)" });
+  gsap.set(circleText, { opacity: 0 });
+  gsap.set(sinceSection, { opacity: 1 });
+
+  // 🟢 Pin section like Manifesto until animation completes
+  ScrollTrigger.create({
+    trigger: wrapper,
+    start: "top top",
+    end: "+=200%", // section stays pinned during reveal
+    pin: true,
+    pinSpacing: true,
+  });
+
+  // 🟢 Smooth reveal timeline tied to scroll
+  const tl = gsap.timeline({
+    scrollTrigger: {
+      trigger: wrapper,
+      start: "top top",
+      end: "+=200%",
+      scrub: 1, // smooth follow
+    },
+  });
+
+  // Circle reveal background (like sunrise)
+  tl.to(reveal, {
+    clipPath: "circle(150% at 50% 100%)",
+    ease: "none",
+  });
+
+  // Fade out top section as reveal expands
+  tl.to(
+    sinceSection,
+    {
+      opacity: 0,
+      ease: "power2.out",
+    },
+    0.15 // starts slightly after reveal begins
+  );
+
+  // Fade in lower section text near end
+  tl.to(
+    circleText,
+    {
+      opacity: 1,
+      ease: "power2.inOut",
+    },
+    0.65 // fades in near end of reveal
+  );
+
+  console.log("[Since Section] initialized successfully ✅");
+}
